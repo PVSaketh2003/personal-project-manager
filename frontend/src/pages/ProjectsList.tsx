@@ -1,57 +1,57 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import {
-  Filter,
-  Plus,
   Search,
-  SlidersHorizontal,
+  Plus,
+  LayoutGrid,
+  List as ListIcon,
   ChevronLeft,
   ChevronRight,
   FolderGit2,
-  LayoutGrid,
-  List,
   X,
 } from 'lucide-react';
 import { api } from '../api/client';
-import { Project } from '../types';
+import { Project, ProjectCategory, ProjectStatus } from '../types';
 import { ProjectCard } from '../components/ProjectCard';
 import { CardSkeleton } from '../components/LoadingSkeleton';
 
 export const ProjectsList: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  // Filters state from URL
-  const page = parseInt(searchParams.get('page') || '1', 10);
+  // Layout switcher: 'grid' | 'list'
+  const [layout, setLayout] = useState<'grid' | 'list'>('grid');
+
+  // Filters from query params or state
   const search = searchParams.get('search') || '';
-  const status = searchParams.get('status') || 'All';
-  const category = searchParams.get('category') || 'All';
-  const technology = searchParams.get('technology') || 'All';
+  const status = (searchParams.get('status') as ProjectStatus) || '';
+  const category = (searchParams.get('category') as ProjectCategory) || '';
+  const technology = searchParams.get('technology') || '';
+  const page = parseInt(searchParams.get('page') || '1', 10);
   const sortBy = searchParams.get('sort_by') || 'updated_at';
-  const sortOrder = searchParams.get('sort_order') || 'desc';
 
   const [searchInput, setSearchInput] = useState(search);
 
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      const data = await api.getProjects({
+      const res = await api.getProjects({
         page,
         page_size: 12,
         search: search || undefined,
-        status: status !== 'All' ? status : undefined,
-        category: category !== 'All' ? category : undefined,
-        technology: technology !== 'All' ? technology : undefined,
+        status: status || undefined,
+        category: category || undefined,
+        technology: technology || undefined,
         sort_by: sortBy,
-        sort_order: sortOrder,
+        sort_order: 'desc',
       });
-      setProjects(data.items);
-      setTotal(data.total);
-      setTotalPages(data.pages);
+      setProjects(res.items);
+      setTotal(res.total);
+      setTotalPages(res.total_pages);
     } catch (err) {
       console.error('Failed to load projects:', err);
     } finally {
@@ -61,12 +61,12 @@ export const ProjectsList: React.FC = () => {
 
   useEffect(() => {
     fetchProjects();
-  }, [page, search, status, category, technology, sortBy, sortOrder]);
+  }, [searchParams]);
 
-  const updateParam = (key: string, value: string) => {
+  const updateParam = (key: string, val: string | null) => {
     const next = new URLSearchParams(searchParams);
-    if (value && value !== 'All') {
-      next.set(key, value);
+    if (val) {
+      next.set(key, val);
     } else {
       next.delete(key);
     }
@@ -76,7 +76,7 @@ export const ProjectsList: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateParam('search', searchInput.trim());
+    updateParam('search', searchInput.trim() || null);
   };
 
   const clearAllFilters = () => {
@@ -84,91 +84,101 @@ export const ProjectsList: React.FC = () => {
     setSearchParams(new URLSearchParams());
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await api.deleteProject(id);
-      fetchProjects();
-    } catch (err) {
-      console.error('Error deleting project:', err);
-    }
-  };
-
-  const hasActiveFilters = search || status !== 'All' || category !== 'All' || technology !== 'All';
+  const hasActiveFilters = Boolean(search || status || category || technology);
 
   return (
-    <div>
+    <div style={{ maxWidth: '1440px', margin: '0 auto', paddingBottom: '3rem' }}>
       {/* Header */}
-      <div className="page-header">
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '1.75rem',
+          flexWrap: 'wrap',
+          gap: '1rem',
+        }}
+      >
         <div>
-          <h1 className="page-title">Workspace Repositories</h1>
-          <p className="page-subtitle">
-            Catalog of {total} applications, edge AI pipelines, and service backends.
+          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.72rem', color: 'var(--text-muted)', letterSpacing: '0.06em', marginBottom: '0.25rem' }}>
+            INDEX // ARCHIVE ENTRIES [{total} TOTAL]
+          </div>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
+            All Projects
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
+            Complete registry of all software projects, models, tools, and notebooks.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          {/* Grid / List view toggle */}
+        <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
+          {/* Grid / List Switcher */}
           <div
             style={{
               display: 'flex',
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--bg-surface)',
+              border: '1px solid var(--border-structural)',
+              borderRadius: '3px',
               padding: '2px',
             }}
           >
             <button
-              onClick={() => setViewMode('grid')}
+              onClick={() => setLayout('grid')}
               style={{
                 padding: '0.4rem 0.65rem',
-                borderRadius: 'var(--radius-xs)',
-                background: viewMode === 'grid' ? 'var(--bg-secondary)' : 'transparent',
-                color: viewMode === 'grid' ? 'var(--secondary-accent)' : 'var(--text-muted)',
+                backgroundColor: layout === 'grid' ? 'var(--bg-surface-elevated)' : 'transparent',
+                border: layout === 'grid' ? '1px solid var(--border-structural)' : '1px solid transparent',
+                borderRadius: '2px',
+                color: layout === 'grid' ? 'var(--text-primary)' : 'var(--text-muted)',
+                cursor: 'pointer',
               }}
               title="Grid View"
-              aria-label="Grid view"
             >
               <LayoutGrid size={15} />
             </button>
             <button
-              onClick={() => setViewMode('list')}
+              onClick={() => setLayout('list')}
               style={{
                 padding: '0.4rem 0.65rem',
-                borderRadius: 'var(--radius-xs)',
-                background: viewMode === 'list' ? 'var(--bg-secondary)' : 'transparent',
-                color: viewMode === 'list' ? 'var(--secondary-accent)' : 'var(--text-muted)',
+                backgroundColor: layout === 'list' ? 'var(--bg-surface-elevated)' : 'transparent',
+                border: layout === 'list' ? '1px solid var(--border-structural)' : '1px solid transparent',
+                borderRadius: '2px',
+                color: layout === 'list' ? 'var(--text-primary)' : 'var(--text-muted)',
+                cursor: 'pointer',
               }}
               title="List View"
-              aria-label="List view"
             >
-              <List size={15} />
+              <ListIcon size={15} />
             </button>
           </div>
 
           <Link to="/projects/new" className="btn btn-primary">
-            <Plus size={16} /> Add Project
+            <Plus size={15} /> Ingest Project
           </Link>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
       <div
-        className="aurora-card"
+        className="obs-card"
         style={{
-          marginBottom: '2rem',
-          padding: '1.25rem',
+          padding: '1rem 1.25rem',
+          marginBottom: '1.5rem',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '1rem',
+          gap: '0.75rem',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          backgroundColor: 'var(--bg-surface-elevated)',
         }}
       >
-        <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '0.75rem' }}>
-          <div style={{ position: 'relative', flex: 1 }}>
+        {/* Search */}
+        <form onSubmit={handleSearchSubmit} style={{ flex: 1, minWidth: '240px' }}>
+          <div style={{ position: 'relative' }}>
             <Search
-              size={18}
+              size={15}
               style={{
                 position: 'absolute',
-                left: '14px',
+                left: '10px',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 color: 'var(--text-muted)',
@@ -177,233 +187,161 @@ export const ProjectsList: React.FC = () => {
             <input
               type="text"
               className="form-input"
-              placeholder="Search projects by title, framework (FastAPI, React), or keyword..."
+              style={{ paddingLeft: '32px', height: '36px', fontSize: '0.85rem' }}
+              placeholder="Search by title, stack (FastAPI, React), or description..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              style={{ paddingLeft: '42px', height: '42px' }}
             />
           </div>
-          <button type="submit" className="btn btn-primary btn-sm">
-            Search
-          </button>
-          {search && (
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm"
-              onClick={() => {
-                setSearchInput('');
-                updateParam('search', '');
-              }}
-            >
-              Clear
-            </button>
-          )}
         </form>
 
-        {/* Filter Controls Row */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '1rem',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            paddingTop: '0.85rem',
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-            <Filter size={14} color="var(--secondary-accent)" /> Filter by:
-          </div>
-
-          {/* Status Dropdown */}
+        {/* Status Dropdown */}
+        <div style={{ minWidth: '150px' }}>
           <select
             className="form-select"
-            style={{ width: 'auto', minWidth: '150px', fontSize: '0.85rem', height: '36px', padding: '0 0.75rem' }}
+            style={{ height: '36px', fontSize: '0.82rem' }}
             value={status}
-            onChange={(e) => updateParam('status', e.target.value)}
+            onChange={(e) => updateParam('status', e.target.value || null)}
           >
-            <option value="All">All Statuses</option>
-            <option value="In Development">In Development</option>
+            <option value="">All Statuses</option>
             <option value="Completed">Completed</option>
+            <option value="In Development">In Development</option>
             <option value="Incomplete">Incomplete</option>
             <option value="Planning">Planning</option>
             <option value="Archived">Archived</option>
           </select>
+        </div>
 
-          {/* Category Dropdown */}
+        {/* Category Dropdown */}
+        <div style={{ minWidth: '180px' }}>
           <select
             className="form-select"
-            style={{ width: 'auto', minWidth: '170px', fontSize: '0.85rem', height: '36px', padding: '0 0.75rem' }}
+            style={{ height: '36px', fontSize: '0.82rem' }}
             value={category}
-            onChange={(e) => updateParam('category', e.target.value)}
+            onChange={(e) => updateParam('category', e.target.value || null)}
           >
-            <option value="All">All Categories</option>
+            <option value="">All Categories</option>
             <option value="Web Application">Web Application</option>
             <option value="Machine Learning / Edge AI">Machine Learning / Edge AI</option>
             <option value="Data Science & Analytics">Data Science & Analytics</option>
             <option value="Backend API">Backend API</option>
             <option value="Jupyter Notebook">Jupyter Notebook</option>
+            <option value="Developer Tool">Developer Tool</option>
             <option value="Other">Other</option>
           </select>
-
-          {/* Sort By Dropdown */}
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <SlidersHorizontal size={14} color="var(--text-muted)" />
-            <select
-              className="form-select"
-              style={{ width: 'auto', fontSize: '0.85rem', height: '36px', padding: '0 0.75rem' }}
-              value={`${sortBy}:${sortOrder}`}
-              onChange={(e) => {
-                const [sb, so] = e.target.value.split(':');
-                const next = new URLSearchParams(searchParams);
-                next.set('sort_by', sb);
-                next.set('sort_order', so);
-                setSearchParams(next);
-              }}
-            >
-              <option value="updated_at:desc">Recently Updated</option>
-              <option value="created_at:desc">Newest First</option>
-              <option value="name:asc">Name (A-Z)</option>
-              <option value="name:desc">Name (Z-A)</option>
-            </select>
-          </div>
         </div>
 
-        {/* Active Filter Chips */}
-        {hasActiveFilters && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.5rem' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Active filters:</span>
-            {search && (
-              <span className="badge badge-provenance-inferred" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                Query: "{search}"
-                <X size={12} style={{ cursor: 'pointer' }} onClick={() => updateParam('search', '')} />
-              </span>
-            )}
-            {status !== 'All' && (
-              <span className="badge badge-provenance-inferred" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                Status: {status}
-                <X size={12} style={{ cursor: 'pointer' }} onClick={() => updateParam('status', 'All')} />
-              </span>
-            )}
-            {category !== 'All' && (
-              <span className="badge badge-provenance-inferred" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                Category: {category}
-                <X size={12} style={{ cursor: 'pointer' }} onClick={() => updateParam('category', 'All')} />
-              </span>
-            )}
-            {technology !== 'All' && (
-              <span className="badge badge-provenance-inferred" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                Tech: {technology}
-                <X size={12} style={{ cursor: 'pointer' }} onClick={() => updateParam('technology', 'All')} />
-              </span>
-            )}
-            <button
-              className="btn btn-ghost btn-sm"
-              style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
-              onClick={clearAllFilters}
-            >
-              Reset all
-            </button>
-          </div>
-        )}
+        {/* Sort */}
+        <div style={{ minWidth: '150px' }}>
+          <select
+            className="form-select"
+            style={{ height: '36px', fontSize: '0.82rem' }}
+            value={sortBy}
+            onChange={(e) => updateParam('sort_by', e.target.value)}
+          >
+            <option value="updated_at">Sort: Last Updated</option>
+            <option value="name">Sort: Name (A-Z)</option>
+            <option value="status">Sort: Status</option>
+            <option value="created_at">Sort: Created Date</option>
+          </select>
+        </div>
       </div>
 
-      {/* Projects Grid or List */}
-      {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(320px, 1fr))' : '1fr', gap: '1.25rem' }}>
-          {[...Array(6)].map((_, i) => (
-            <CardSkeleton key={i} />
-          ))}
-        </div>
-      ) : projects.length > 0 ? (
-        <>
-          <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(320px, 1fr))' : '1fr', gap: '1.25rem' }}>
-            {projects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onDelete={handleDelete}
-                layout={viewMode}
-              />
-            ))}
-          </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: '1rem',
-                marginTop: '3rem',
-              }}
-            >
-              <button
-                className="btn btn-secondary btn-sm"
-                disabled={page <= 1}
-                onClick={() => {
-                  const next = new URLSearchParams(searchParams);
-                  next.set('page', (page - 1).toString());
-                  setSearchParams(next);
-                }}
-              >
-                <ChevronLeft size={16} /> Previous
-              </button>
-
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Page {page} of {totalPages} ({total} repositories)
-              </span>
-
-              <button
-                className="btn btn-secondary btn-sm"
-                disabled={page >= totalPages}
-                onClick={() => {
-                  const next = new URLSearchParams(searchParams);
-                  next.set('page', (page + 1).toString());
-                  setSearchParams(next);
-                }}
-              >
-                Next <ChevronRight size={16} />
-              </button>
-            </div>
+      {/* Active Filter Chips */}
+      {hasActiveFilters && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+            ACTIVE FILTERS:
+          </span>
+          {search && (
+            <span className="badge" style={{ backgroundColor: 'var(--bg-surface-elevated)', border: '1px solid var(--border-structural)', color: 'var(--text-primary)' }}>
+              Query: "{search}"
+              <X size={12} style={{ cursor: 'pointer', marginLeft: '3px' }} onClick={() => { setSearchInput(''); updateParam('search', null); }} />
+            </span>
           )}
-        </>
-      ) : (
-        /* Empty State */
-        <div
-          className="aurora-card"
-          style={{
-            textAlign: 'center',
-            padding: '4rem 1.5rem',
-            borderStyle: 'dashed',
-            borderColor: 'var(--border-subtle)',
-          }}
-        >
+          {status && (
+            <span className="badge" style={{ backgroundColor: 'var(--bg-surface-elevated)', border: '1px solid var(--border-structural)', color: 'var(--text-primary)' }}>
+              Status: {status}
+              <X size={12} style={{ cursor: 'pointer', marginLeft: '3px' }} onClick={() => updateParam('status', null)} />
+            </span>
+          )}
+          {category && (
+            <span className="badge" style={{ backgroundColor: 'var(--bg-surface-elevated)', border: '1px solid var(--border-structural)', color: 'var(--text-primary)' }}>
+              Category: {category}
+              <X size={12} style={{ cursor: 'pointer', marginLeft: '3px' }} onClick={() => updateParam('category', null)} />
+            </span>
+          )}
+          {technology && (
+            <span className="badge" style={{ backgroundColor: 'var(--bg-surface-elevated)', border: '1px solid var(--border-structural)', color: 'var(--text-primary)' }}>
+              Tech: {technology}
+              <X size={12} style={{ cursor: 'pointer', marginLeft: '3px' }} onClick={() => updateParam('technology', null)} />
+            </span>
+          )}
+          <button
+            onClick={clearAllFilters}
+            style={{ fontSize: '0.72rem', color: 'var(--accent-cobalt)', fontWeight: 600, marginLeft: '0.25rem', cursor: 'pointer' }}
+          >
+            Clear All
+          </button>
+        </div>
+      )}
+
+      {/* Project Entries */}
+      {loading ? (
+        <CardSkeleton count={6} />
+      ) : projects.length > 0 ? (
+        layout === 'grid' ? (
           <div
             style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: 'var(--radius-md)',
-              background: 'var(--bg-elevated)',
-              border: '1px solid var(--border-subtle)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 1.25rem auto',
-              color: 'var(--text-muted)',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+              gap: '1.25rem',
+              marginBottom: '2rem',
             }}
           >
-            <FolderGit2 size={26} />
+            {projects.map((p) => (
+              <ProjectCard key={p.id} project={p} onDelete={fetchProjects} layout="grid" />
+            ))}
           </div>
-          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-            No repositories matched criteria
-          </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem', maxWidth: '420px', margin: '0 auto 1.5rem auto' }}>
-            Try modifying your query or resetting active filters to browse the catalog.
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '2rem' }}>
+            {projects.map((p) => (
+              <ProjectCard key={p.id} project={p} onDelete={fetchProjects} layout="list" />
+            ))}
+          </div>
+        )
+      ) : (
+        <div className="obs-card" style={{ textAlign: 'center', padding: '3.5rem 1.5rem', backgroundColor: 'var(--bg-surface-elevated)' }}>
+          <FolderGit2 size={24} color="var(--text-muted)" style={{ margin: '0 auto 0.75rem' }} />
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.35rem' }}>No Matching Projects Found</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+            No project entries correspond to the active filter specifications.
           </p>
-          <button className="btn btn-secondary" onClick={clearAllFilters}>
-            Reset All Filters
+          <button className="btn btn-secondary btn-sm" onClick={clearAllFilters}>
+            Reset Filters
+          </button>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+          <button
+            className="btn btn-secondary btn-sm"
+            disabled={page <= 1}
+            onClick={() => updateParam('page', (page - 1).toString())}
+          >
+            <ChevronLeft size={14} /> Previous
+          </button>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.75rem', color: 'var(--text-secondary)', padding: '0 0.5rem' }}>
+            PAGE {page} OF {totalPages}
+          </span>
+          <button
+            className="btn btn-secondary btn-sm"
+            disabled={page >= totalPages}
+            onClick={() => updateParam('page', (page + 1).toString())}
+          >
+            Next <ChevronRight size={14} />
           </button>
         </div>
       )}

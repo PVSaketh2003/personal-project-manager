@@ -7,29 +7,56 @@ interface StatusBadgeProps {
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   let badgeClass = 'badge-status-in-development';
-  if (status === 'Completed') badgeClass = 'badge-status-completed';
-  else if (status === 'Incomplete') badgeClass = 'badge-status-incomplete';
-  else if (status === 'Archived') badgeClass = 'badge-status-archived';
-  else if (status === 'Planning') badgeClass = 'badge-status-planning';
+  let glyph = '○';
 
-  return <span className={`badge ${badgeClass}`}>{status}</span>;
+  if (status === 'Completed') {
+    badgeClass = 'badge-status-completed';
+    glyph = '●';
+  } else if (status === 'Incomplete') {
+    badgeClass = 'badge-status-incomplete';
+    glyph = '◐';
+  } else if (status === 'Archived') {
+    badgeClass = 'badge-status-archived';
+    glyph = '⊘';
+  } else if (status === 'Planning') {
+    badgeClass = 'badge-status-planning';
+    glyph = '◌';
+  }
+
+  return (
+    <span className={`badge ${badgeClass}`}>
+      <span style={{ fontSize: '0.65rem' }}>{glyph}</span> {status}
+    </span>
+  );
 };
 
 interface ProvenanceBadgeProps {
   provenance: ProvenanceType;
+  source?: string | null;
 }
 
-export const ProvenanceBadge: React.FC<ProvenanceBadgeProps> = ({ provenance }) => {
+export const ProvenanceBadge: React.FC<ProvenanceBadgeProps> = ({ provenance, source }) => {
+  const codes: Record<ProvenanceType, string> = {
+    detected: '[DET]',
+    inferred: '[INF]',
+    needs_review: '[REV]',
+    missing: '[MIS]',
+  };
+
   const labels: Record<ProvenanceType, string> = {
     detected: 'Detected',
     inferred: 'Inferred',
-    needs_review: 'Needs Review',
+    needs_review: 'Review Needed',
     missing: 'Missing',
   };
 
   return (
-    <span className={`badge badge-provenance-${provenance}`} style={{ fontSize: '0.7rem' }}>
-      {labels[provenance] || provenance}
+    <span
+      className={`badge badge-provenance-${provenance}`}
+      title={source ? `Evidence: ${source}` : undefined}
+      style={{ fontSize: '0.68rem', cursor: source ? 'help' : 'default' }}
+    >
+      <span style={{ opacity: 0.75 }}>{codes[provenance]}</span> {labels[provenance] || provenance}
     </span>
   );
 };

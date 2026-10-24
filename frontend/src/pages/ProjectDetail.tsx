@@ -116,21 +116,25 @@ export const ProjectDetail: React.FC = () => {
   if (loading) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '6rem 0', gap: '1rem' }}>
-        <Loader2 size={36} className="spin" color="var(--accent-primary)" />
-        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Loading project specifications...</span>
+        <Loader2 size={32} className="spin" color="var(--obs-cobalt)" />
+        <span style={{ fontSize: '0.82rem', fontFamily: 'var(--font-mono)', color: 'var(--obs-muted)' }}>
+          LOADING DOSSIER SPECIFICATIONS...
+        </span>
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="card" style={{ textAlign: 'center', padding: '3.5rem 2rem', maxWidth: '540px', margin: '3rem auto' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.75rem' }}>Project Not Found</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '1.5rem' }}>
+      <div className="obs-card" style={{ textAlign: 'center', padding: '3.5rem 2rem', maxWidth: '540px', margin: '3rem auto' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.75rem', fontFamily: 'var(--font-mono)' }}>
+          PROJECT NOT FOUND
+        </h2>
+        <p style={{ color: 'var(--obs-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
           The requested project record could not be found or may have been deleted.
         </p>
-        <Link to="/projects" className="btn btn-secondary">
-          <ArrowLeft size={15} /> Back to All Projects
+        <Link to="/projects" className="obs-btn obs-btn-secondary">
+          <ArrowLeft size={14} /> Back to Catalog
         </Link>
       </div>
     );
@@ -148,29 +152,33 @@ export const ProjectDetail: React.FC = () => {
   const isRunning = project.local_status === 'running';
 
   return (
-    <div style={{ maxWidth: '1240px', margin: '0 auto', paddingBottom: '3rem' }}>
-      {/* Top Breadcrumb & Action Row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-          <Link to="/projects" style={{ color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-            <ArrowLeft size={14} /> Projects
+    <div style={{ maxWidth: '1360px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '3rem' }}>
+      
+      {/* Top Breadcrumb & Action Toolbar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', fontFamily: 'var(--font-mono)' }}>
+          <Link to="/projects" style={{ color: 'var(--obs-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <ArrowLeft size={13} /> CATALOG
           </Link>
-          <span style={{ color: 'var(--text-muted)' }}>/</span>
-          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{project.name}</span>
+          <span style={{ color: 'var(--obs-border)' }}>//</span>
+          <span style={{ color: 'var(--obs-text)', fontWeight: 600 }}>{project.name.toUpperCase()}</span>
+          <span className="obs-tag" style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem' }}>
+            DOSSIER #{project.id.slice(0, 8)}
+          </span>
         </div>
 
         {/* Action Toolbar */}
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
           {project.repository_url && (
             <button
-              className="btn btn-primary"
+              className={`obs-btn ${isRunning ? 'obs-btn-primary' : 'obs-btn-secondary'}`}
               onClick={() => setShowConsole(true)}
               style={{
-                boxShadow: isRunning ? 'var(--shadow-glow-cyan)' : 'none',
-                background: isRunning ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : undefined,
+                background: isRunning ? 'var(--obs-chartreuse)' : undefined,
+                color: isRunning ? '#111412' : undefined,
               }}
             >
-              <Play size={15} /> {isRunning ? 'Runner Active' : 'Launch Localhost'}
+              <Play size={14} /> {isRunning ? 'Runner Active' : 'Launch Localhost'}
             </button>
           )}
 
@@ -179,9 +187,9 @@ export const ProjectDetail: React.FC = () => {
               href={project.deployment_url}
               target="_blank"
               rel="noreferrer"
-              className="btn btn-secondary"
+              className="obs-btn obs-btn-secondary"
             >
-              <ExternalLink size={14} /> Live Demo
+              <ExternalLink size={13} /> Live Deployment
             </a>
           )}
 
@@ -190,141 +198,112 @@ export const ProjectDetail: React.FC = () => {
               href={project.repository_url}
               target="_blank"
               rel="noreferrer"
-              className="btn btn-secondary"
+              className="obs-btn obs-btn-secondary"
             >
-              <GithubIcon size={14} /> GitHub
+              <GithubIcon size={13} /> GitHub
             </a>
           )}
 
           {project.repository_url && (
             <button
-              className="btn btn-secondary btn-icon"
+              className="obs-btn obs-btn-secondary"
               onClick={handleReanalyze}
               disabled={reanalyzing}
               title="Re-analyze repository from GitHub"
+              style={{ padding: '0.55rem' }}
             >
-              <RefreshCw size={14} className={reanalyzing ? 'spin' : ''} />
+              <RefreshCw size={13} className={reanalyzing ? 'spin' : ''} />
             </button>
           )}
 
           <button
-            className="btn btn-secondary btn-icon"
+            className="obs-btn obs-btn-secondary"
             onClick={() => setIsEditing(!isEditing)}
             title="Edit project details"
+            style={{ padding: '0.55rem' }}
           >
-            <Edit size={14} />
+            <Edit size={13} />
           </button>
 
           <button
-            className="btn btn-danger btn-icon"
+            className="obs-btn obs-btn-secondary"
             onClick={() => setShowDeleteModal(true)}
             title="Delete project"
+            style={{ padding: '0.55rem', color: 'var(--obs-error)' }}
           >
-            <Trash2 size={14} />
+            <Trash2 size={13} />
           </button>
         </div>
       </div>
 
-      {/* Main Developer Profile Hero Card */}
-      <div
-        className="card"
-        style={{
-          padding: '1.75rem',
-          marginBottom: '1.75rem',
-          position: 'relative',
-          overflow: 'hidden',
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border-subtle)',
-        }}
-      >
-        {/* Subtle Ambient Aurora Glow */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-50%',
-            right: '-10%',
-            width: '400px',
-            height: '400px',
-            background: 'radial-gradient(circle, rgba(139, 124, 255, 0.12) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }}
-        />
-
-        <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          {/* Monogram / Geometric Tile */}
+      {/* Main Observatory Dossier Hero */}
+      <div className="obs-card" style={{ padding: '1.75rem', position: 'relative' }}>
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+          
+          {/* Identity Glyph Tile */}
           <div
             style={{
               width: '64px',
               height: '64px',
-              borderRadius: 'var(--radius-md)',
-              background: 'linear-gradient(135deg, rgba(139, 124, 255, 0.25) 0%, rgba(72, 221, 245, 0.25) 100%)',
-              border: '1px solid rgba(139, 124, 255, 0.35)',
+              background: 'var(--obs-graphite)',
+              color: 'var(--obs-chartreuse)',
+              border: '1px solid var(--obs-border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              fontFamily: 'var(--font-mono)',
               fontWeight: 800,
-              fontSize: '1.35rem',
-              color: 'var(--accent-secondary)',
+              fontSize: '1.4rem',
               flexShrink: 0,
-              boxShadow: 'var(--shadow-glow-cyan)',
             }}
           >
             {initials}
           </div>
 
-          <div style={{ flex: 1, minWidth: '280px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
-              <h1 style={{ fontSize: '1.65rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-primary)' }}>
+          <div style={{ flex: 1, minWidth: '300px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
+              <h1 className="obs-page-title" style={{ margin: 0, fontSize: '1.75rem' }}>
                 {project.name}
               </h1>
               <StatusBadge status={project.status} />
               {isRunning && (
-                <span className="badge" style={{ background: 'rgba(74, 222, 179, 0.15)', color: 'var(--success)', border: '1px solid rgba(74, 222, 179, 0.3)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <Radio size={11} className="pulse" /> Localhost Running
+                <span className="obs-tag" style={{ background: 'var(--obs-chartreuse)', color: '#111412', fontWeight: 700 }}>
+                  <Radio size={11} className="pulse" /> LOCALHOST ACTIVE
                 </span>
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.85rem' }}>
-              <span style={{ color: 'var(--accent-highlight)', fontWeight: 600 }}>{project.project_type}</span>
-              <span>•</span>
+            <div style={{ display: 'flex', gap: '0.85rem', color: 'var(--obs-muted)', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1rem' }}>
+              <span style={{ color: 'var(--obs-cobalt)', fontWeight: 600 }}>[CAT: {project.project_type.toUpperCase()}]</span>
+              <span>//</span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Calendar size={12} /> Ingested {new Date(project.created_at).toLocaleDateString()}
+                <Calendar size={12} /> INGESTED {new Date(project.created_at).toLocaleDateString()}
               </span>
-              <span>•</span>
+              <span>//</span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Clock size={12} /> Updated {new Date(project.updated_at).toLocaleDateString()}
+                <Clock size={12} /> UPDATED {new Date(project.updated_at).toLocaleDateString()}
               </span>
               {project.repository_owner && (
                 <>
-                  <span>•</span>
-                  <span>Owner: {project.repository_owner}</span>
+                  <span>//</span>
+                  <span>OWNER: {project.repository_owner}</span>
                 </>
               )}
             </div>
 
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.92rem', lineHeight: 1.6, margin: '0 0 1rem' }}>
+            <p style={{ color: 'var(--obs-text)', fontSize: '0.92rem', lineHeight: 1.6, margin: '0 0 1.25rem', maxWidth: '900px' }}>
               {project.description || 'No project description documented.'}
             </p>
 
-            {/* Tech Stack Pills */}
+            {/* Tech Stack Tags */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
               {project.primary_language && (
-                <span className="badge" style={{ background: 'rgba(139, 124, 255, 0.15)', color: 'var(--accent-highlight)', border: '1px solid rgba(139, 124, 255, 0.3)' }}>
-                  {project.primary_language}
+                <span className="obs-tag" style={{ background: 'var(--obs-graphite)', color: '#F5F5EE', borderColor: 'var(--obs-border)' }}>
+                  LANG: {project.primary_language}
                 </span>
               )}
               {project.technologies?.map((tech) => (
-                <span
-                  key={tech}
-                  className="badge"
-                  style={{
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-secondary)',
-                    border: '1px solid var(--border-subtle)',
-                    fontSize: '0.75rem',
-                  }}
-                >
+                <span key={tech} className="obs-tag">
                   {tech}
                 </span>
               ))}
@@ -338,25 +317,26 @@ export const ProjectDetail: React.FC = () => {
             style={{
               marginTop: '1.5rem',
               padding: '1.25rem',
-              background: 'var(--bg-secondary)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-subtle)',
+              background: 'var(--obs-canvas)',
+              border: '1px solid var(--obs-border)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                Edit Project Specifications
-              </h3>
-              <button onClick={() => setIsEditing(false)} style={{ color: 'var(--text-muted)' }}>
-                <X size={16} />
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, fontFamily: 'var(--font-mono)', color: 'var(--obs-text)' }}>
+                EDIT PROJECT SPECIFICATIONS
+              </div>
+              <button onClick={() => setIsEditing(false)} style={{ background: 'none', border: 'none', color: 'var(--obs-muted)', cursor: 'pointer' }}>
+                <X size={15} />
               </button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem', marginBottom: '1rem' }}>
               <div>
-                <label className="form-label">Lifecycle Status</label>
+                <label style={{ display: 'block', fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--obs-muted)', marginBottom: '0.35rem' }}>
+                  LIFECYCLE STATUS
+                </label>
                 <select
-                  className="form-select"
+                  className="obs-input"
                   value={editStatus}
                   onChange={(e) => setEditStatus(e.target.value as ProjectStatus)}
                 >
@@ -369,10 +349,12 @@ export const ProjectDetail: React.FC = () => {
               </div>
 
               <div>
-                <label className="form-label">Live Deployment URL</label>
+                <label style={{ display: 'block', fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--obs-muted)', marginBottom: '0.35rem' }}>
+                  LIVE DEPLOYMENT URL
+                </label>
                 <input
                   type="url"
-                  className="form-input"
+                  className="obs-input"
                   value={editDeploymentUrl}
                   onChange={(e) => setEditDeploymentUrl(e.target.value)}
                   placeholder="https://..."
@@ -381,22 +363,24 @@ export const ProjectDetail: React.FC = () => {
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <label className="form-label">Internal Engineering & Edge Notes</label>
+              <label style={{ display: 'block', fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--obs-muted)', marginBottom: '0.35rem' }}>
+                INTERNAL ENGINEERING NOTES & CONSTRAINTS
+              </label>
               <textarea
-                className="form-textarea"
-                rows={3}
+                className="obs-input"
+                style={{ height: '80px', padding: '0.65rem', resize: 'vertical' }}
                 value={editNotes}
                 onChange={(e) => setEditNotes(e.target.value)}
-                placeholder="Future milestones, deployment instructions, environment configs..."
+                placeholder="Deployment milestones, environment flags, architecture constraints..."
               />
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-              <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(false)}>
+              <button className="obs-btn obs-btn-secondary" onClick={() => setIsEditing(false)}>
                 Cancel
               </button>
-              <button className="btn btn-primary btn-sm" onClick={handleSaveEdit} disabled={savingEdit}>
-                {savingEdit ? <Loader2 size={13} className="spin" /> : <Check size={13} />} Save Changes
+              <button className="obs-btn obs-btn-primary" onClick={handleSaveEdit} disabled={savingEdit}>
+                {savingEdit ? <Loader2 size={13} className="spin" /> : <Check size={13} />} Save Specifications
               </button>
             </div>
           </div>
@@ -404,91 +388,96 @@ export const ProjectDetail: React.FC = () => {
       </div>
 
       {/* Grid: Architecture Specs, Manifests, and Deployment Sandbox */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem', marginBottom: '1.75rem' }}>
-        {/* Card 1: Architecture & Frameworks */}
-        <div className="card" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-            <Package size={18} color="var(--accent-primary)" />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 600 }}>Stack & Architecture</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.25rem' }}>
+        
+        {/* Card 1: Stack & Architecture Specifications */}
+        <div className="obs-card" style={{ padding: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--obs-border)', paddingBottom: '0.65rem' }}>
+            <Package size={16} color="var(--obs-cobalt)" />
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 600, fontFamily: 'var(--font-mono)', margin: 0 }}>
+              TECHNICAL ARCHITECTURE
+            </h3>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', fontSize: '0.88rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Primary Language</span>
-              <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{project.primary_language || 'Not detected'}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.82rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--obs-border)', paddingBottom: '0.5rem' }}>
+              <span style={{ color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>Primary Language</span>
+              <span style={{ fontWeight: 600, color: 'var(--obs-text)' }}>{project.primary_language || 'Not detected'}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Frontend Framework</span>
-              <span style={{ fontWeight: 500 }}>{project.frontend_framework || 'None (CLI / Backend)'}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--obs-border)', paddingBottom: '0.5rem' }}>
+              <span style={{ color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>Frontend Framework</span>
+              <span style={{ fontWeight: 500 }}>{project.frontend_framework || 'None (CLI / API Only)'}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Backend Framework</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--obs-border)', paddingBottom: '0.5rem' }}>
+              <span style={{ color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>Backend Framework</span>
               <span style={{ fontWeight: 500 }}>{project.backend_framework || 'None'}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Database</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--obs-border)', paddingBottom: '0.5rem' }}>
+              <span style={{ color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>Database & Storage</span>
               <span style={{ fontWeight: 500 }}>{project.database_technology || 'None'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Local Process State</span>
-              <span style={{ fontWeight: 600, color: isRunning ? 'var(--success)' : 'var(--text-secondary)' }}>
-                {project.local_status}
+              <span style={{ color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>Local Process State</span>
+              <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)', color: isRunning ? 'var(--obs-success)' : 'var(--obs-muted)' }}>
+                {project.local_status.toUpperCase()}
               </span>
             </div>
           </div>
         </div>
 
         {/* Card 2: Deployment & Live Preview Sandbox */}
-        <div className="card" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-            <Server size={18} color="var(--accent-secondary)" />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 600 }}>Deployment & Sandbox</h3>
+        <div className="obs-card" style={{ padding: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--obs-border)', paddingBottom: '0.65rem' }}>
+            <Server size={16} color="var(--obs-cobalt)" />
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 600, fontFamily: 'var(--font-mono)', margin: 0 }}>
+              DEPLOYMENT & WORKSPACE SANDBOX
+            </h3>
           </div>
 
           {project.deployment_url ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ padding: '0.85rem', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>LIVE URL</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div style={{ padding: '0.85rem', background: 'var(--obs-canvas)', border: '1px solid var(--obs-border)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>
+                  ACTIVE PUBLIC ENDPOINT
+                </div>
                 <a
                   href={project.deployment_url}
                   target="_blank"
                   rel="noreferrer"
-                  style={{ color: 'var(--accent-secondary)', fontWeight: 600, fontSize: '0.88rem', wordBreak: 'break-all', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  style={{ color: 'var(--obs-cobalt)', fontWeight: 600, fontSize: '0.85rem', wordBreak: 'break-all', display: 'flex', alignItems: 'center', gap: '4px' }}
                 >
                   {project.deployment_url} <ExternalLink size={13} />
                 </a>
               </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                Production demo is hosted externally. Click the link above to view the active web application.
+              <p style={{ fontSize: '0.78rem', color: 'var(--obs-muted)', lineHeight: 1.5, margin: 0 }}>
+                Live application is deployed to public production infrastructure. Click above to open.
               </p>
             </div>
           ) : (
-            /* Undeployed Project Sandbox */
             <div
               style={{
-                background: 'var(--bg-secondary)',
-                border: '1px dashed var(--border-subtle)',
-                borderRadius: 'var(--radius-sm)',
+                background: 'var(--obs-canvas)',
+                border: '1px dashed var(--obs-border)',
                 padding: '1.25rem',
                 textAlign: 'center',
               }}
             >
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(139, 124, 255, 0.1)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem' }}>
-                <Terminal size={20} />
+              <div style={{ width: '38px', height: '38px', background: 'var(--obs-surface)', color: 'var(--obs-cobalt)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem', border: '1px solid var(--obs-border)' }}>
+                <Terminal size={18} />
               </div>
-              <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
-                Undeployed Repository Workspace
+              <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--obs-text)', marginBottom: '0.35rem', fontFamily: 'var(--font-mono)' }}>
+                UNDEPLOYED WORKSPACE
               </div>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '1rem' }}>
-                This project has no public URL. You can launch the local runner daemon to clone, install dependencies, and run it on localhost.
+              <p style={{ fontSize: '0.75rem', color: 'var(--obs-muted)', lineHeight: 1.5, marginBottom: '1rem' }}>
+                No active production endpoint found. Use the local daemon to clone, install dependencies, and run on localhost.
               </p>
               {project.repository_url && (
                 <button
-                  className="btn btn-secondary btn-sm"
+                  className="obs-btn obs-btn-secondary"
                   onClick={() => setShowConsole(true)}
-                  style={{ margin: '0 auto' }}
+                  style={{ margin: '0 auto', fontSize: '0.75rem' }}
                 >
-                  <Play size={13} /> Open Local Runner Terminal
+                  <Play size={12} /> Open Local Terminal Runner
                 </button>
               )}
             </div>
@@ -498,10 +487,12 @@ export const ProjectDetail: React.FC = () => {
 
       {/* Directory Sample & File Manifests (if detected) */}
       {analysis && analysis.directory_tree_sample && analysis.directory_tree_sample.length > 0 && (
-        <div className="card" style={{ marginBottom: '1.75rem', padding: '1.5rem' }}>
+        <div className="obs-card" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-            <FolderTree size={18} color="var(--accent-primary)" />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 600 }}>Detected Project Structure Sample</h3>
+            <FolderTree size={16} color="var(--obs-cobalt)" />
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 600, fontFamily: 'var(--font-mono)', margin: 0 }}>
+              DISCOVERED DIRECTORY STRUCTURE SAMPLE
+            </h3>
           </div>
 
           <div
@@ -510,17 +501,16 @@ export const ProjectDetail: React.FC = () => {
               gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
               gap: '0.5rem',
               fontFamily: 'var(--font-mono)',
-              fontSize: '0.78rem',
-              color: 'var(--text-secondary)',
-              background: 'var(--bg-primary)',
-              padding: '1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-subtle)',
+              fontSize: '0.75rem',
+              color: 'var(--obs-text)',
+              background: 'var(--obs-canvas)',
+              padding: '0.85rem',
+              border: '1px solid var(--obs-border)',
             }}
           >
             {analysis.directory_tree_sample.map((p: string, idx: number) => (
               <span key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <FileCode size={13} color="var(--accent-secondary)" /> {p}
+                <FileCode size={12} color="var(--obs-cobalt)" /> {p}
               </span>
             ))}
           </div>
@@ -528,15 +518,17 @@ export const ProjectDetail: React.FC = () => {
       )}
 
       {/* Interactive Notebooks & Documentation */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem', marginBottom: '1.75rem' }}>
-        <div className="card" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-            <BookOpen size={18} color="var(--accent-highlight)" />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 600 }}>Notebooks & Research Links</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.25rem' }}>
+        <div className="obs-card" style={{ padding: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--obs-border)', paddingBottom: '0.5rem' }}>
+            <BookOpen size={16} color="var(--obs-cobalt)" />
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 600, fontFamily: 'var(--font-mono)', margin: 0 }}>
+              NOTEBOOKS & RESEARCH LINKS
+            </h3>
           </div>
 
           {project.notebook_urls && project.notebook_urls.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {project.notebook_urls.map((nbUrl, idx) => (
                 <a
                   key={idx}
@@ -547,40 +539,41 @@ export const ProjectDetail: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    color: 'var(--accent-secondary)',
-                    fontSize: '0.85rem',
+                    color: 'var(--obs-cobalt)',
+                    fontSize: '0.8rem',
                     wordBreak: 'break-all',
-                    background: 'var(--bg-secondary)',
-                    padding: '0.65rem 0.85rem',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--obs-canvas)',
+                    padding: '0.55rem 0.75rem',
+                    border: '1px solid var(--obs-border)',
                   }}
                 >
-                  <BookOpen size={14} /> {nbUrl}
+                  <BookOpen size={13} /> {nbUrl}
                 </a>
               ))}
             </div>
           ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+            <p style={{ color: 'var(--obs-muted)', fontSize: '0.8rem', margin: 0 }}>
               No Jupyter or Google Colab notebooks cataloged for this repository.
             </p>
           )}
         </div>
 
         {/* Engineering Notes Card */}
-        <div className="card" style={{ padding: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-            <Code2 size={18} color="var(--accent-secondary)" />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 600 }}>Internal Engineering Notes</h3>
+        <div className="obs-card" style={{ padding: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--obs-border)', paddingBottom: '0.5rem' }}>
+            <Code2 size={16} color="var(--obs-cobalt)" />
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 600, fontFamily: 'var(--font-mono)', margin: 0 }}>
+              INTERNAL NOTES & CONSTRAINTS
+            </h3>
           </div>
 
           {project.project_notes ? (
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--obs-text)', lineHeight: 1.6, whiteSpace: 'pre-wrap', margin: 0 }}>
               {project.project_notes}
             </p>
           ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-              No engineering notes added. Click Edit above to add deployment guidelines or milestones.
+            <p style={{ color: 'var(--obs-muted)', fontSize: '0.8rem', margin: 0 }}>
+              No engineering notes added. Click Edit above to add deployment guidelines or edge cases.
             </p>
           )}
         </div>
@@ -588,21 +581,22 @@ export const ProjectDetail: React.FC = () => {
 
       {/* README Summary */}
       {project.readme_summary && (
-        <div className="card" style={{ marginBottom: '1.75rem', padding: '1.5rem' }}>
+        <div className="obs-card" style={{ padding: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-            <GitBranch size={18} color="var(--accent-primary)" />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 600 }}>Synthesized README Summary</h3>
+            <GitBranch size={16} color="var(--obs-cobalt)" />
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 600, fontFamily: 'var(--font-mono)', margin: 0 }}>
+              SYNTHESIZED README SUMMARY
+            </h3>
           </div>
           <div
             style={{
-              color: 'var(--text-secondary)',
-              fontSize: '0.88rem',
+              color: 'var(--obs-text)',
+              fontSize: '0.82rem',
               lineHeight: 1.65,
               whiteSpace: 'pre-wrap',
-              background: 'var(--bg-secondary)',
-              padding: '1.25rem',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border-subtle)',
+              background: 'var(--obs-canvas)',
+              padding: '1rem 1.25rem',
+              border: '1px solid var(--obs-border)',
             }}
           >
             {project.readme_summary}
@@ -611,51 +605,52 @@ export const ProjectDetail: React.FC = () => {
       )}
 
       {/* AI Agent Activity Stream for this project */}
-      <div className="card" style={{ padding: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+      <div className="obs-card" style={{ padding: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Sparkles size={18} color="var(--accent-primary)" />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 600 }}>LangGraph Agent Activity</h3>
+            <Sparkles size={16} color="var(--obs-cobalt)" />
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 600, fontFamily: 'var(--font-mono)', margin: 0 }}>
+              LANGGRAPH AGENT AUDIT LOG
+            </h3>
           </div>
 
-          <Link to="/agent" className="btn btn-secondary btn-sm">
-            <Sparkles size={13} /> Open in Agent Command Center
+          <Link to="/agent" className="obs-btn obs-btn-secondary" style={{ fontSize: '0.72rem', padding: '0.35rem 0.65rem' }}>
+            <Sparkles size={12} /> Open in Agent Workspace
           </Link>
         </div>
 
         {tasks.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {tasks.map((t) => (
               <div
                 key={t.id}
                 style={{
-                  background: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '0.85rem 1rem',
+                  background: 'var(--obs-canvas)',
+                  border: '1px solid var(--obs-border)',
+                  padding: '0.75rem 1rem',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  fontSize: '0.85rem',
+                  fontSize: '0.8rem',
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.2rem' }}>
+                  <div style={{ fontWeight: 600, color: 'var(--obs-text)', marginBottom: '0.2rem' }}>
                     {t.instruction}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    Type: <code style={{ color: 'var(--accent-secondary)' }}>{t.task_type}</code> • {new Date(t.created_at).toLocaleString()}
+                  <div style={{ fontSize: '0.7rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>
+                    TYPE: {t.task_type} • {new Date(t.created_at).toLocaleString()}
                   </div>
                 </div>
-                <span className={`badge ${t.status === 'completed' ? 'badge-status-completed' : 'badge-status-incomplete'}`}>
-                  {t.status}
+                <span className="obs-tag" style={{ color: t.status === 'completed' ? 'var(--obs-success)' : 'var(--obs-error)' }}>
+                  {t.status.toUpperCase()}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-            No agent actions executed for this project yet. Use the AI Assistant to query, summarize, or mutate this project.
+          <p style={{ color: 'var(--obs-muted)', fontSize: '0.8rem', margin: 0 }}>
+            No agent actions executed for this project yet. Use the AI Workspace to query, summarize, or mutate this project.
           </p>
         )}
       </div>
@@ -663,9 +658,9 @@ export const ProjectDetail: React.FC = () => {
       {/* Modals */}
       <ConfirmModal
         isOpen={showDeleteModal}
-        title="Delete Project"
+        title="Delete Project Dossier"
         message={`Are you sure you want to permanently delete "${project.name}" from your catalog and database?`}
-        isDestructive={true}
+        variant="danger"
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteModal(false)}
       />

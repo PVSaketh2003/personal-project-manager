@@ -7,6 +7,7 @@ interface StatsCardProps {
   subtitle?: string;
   accentColor?: string;
   trend?: string;
+  indexCode?: string;
 }
 
 export const StatsCard: React.FC<StatsCardProps> = ({
@@ -14,22 +15,25 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   value,
   icon,
   subtitle,
-  accentColor = 'var(--primary-accent)',
+  accentColor = 'var(--accent-primary)',
   trend,
+  indexCode,
 }) => {
   return (
-    <div className="aurora-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+    <div className="obs-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+      {indexCode && <span className="obs-corner-mark top-right">{indexCode}</span>}
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+        <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.02em' }}>
           {title}
         </span>
         <div
           style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--bg-elevated)',
-            border: '1px solid var(--border-subtle)',
+            width: '28px',
+            height: '28px',
+            borderRadius: '2px',
+            backgroundColor: 'var(--bg-surface-elevated)',
+            border: '1px solid var(--border-structural)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -40,13 +44,17 @@ export const StatsCard: React.FC<StatsCardProps> = ({
         </div>
       </div>
 
-      <div style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
+      <div style={{ fontSize: '2.1rem', fontWeight: 800, letterSpacing: '-0.04em', color: 'var(--text-primary)', lineHeight: 1 }}>
         {value}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.72rem', marginTop: '0.15rem' }}>
         {subtitle && <span style={{ color: 'var(--text-muted)' }}>{subtitle}</span>}
-        {trend && <span style={{ color: accentColor, fontWeight: 600 }}>{trend}</span>}
+        {trend && (
+          <span style={{ color: accentColor, fontWeight: 700, fontFamily: 'JetBrains Mono, monospace' }}>
+            {trend}
+          </span>
+        )}
       </div>
     </div>
   );

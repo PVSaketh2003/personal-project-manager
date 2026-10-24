@@ -189,19 +189,14 @@ export const RunnerConsoleModal: React.FC<RunnerConsoleModalProps> = ({
         )}
 
         {/* Live Terminal Log Viewer */}
-        <div className="terminal-window">
-          <div className="terminal-header">
-            <div className="terminal-dots">
-              <span className="terminal-dot dot-red" />
-              <span className="terminal-dot dot-yellow" />
-              <span className="terminal-dot dot-green" />
-            </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>macOS local runner log</span>
-            <button onClick={fetchStatus} style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <RefreshCw size={12} /> Refresh
+        <div className="obs-terminal">
+          <div className="obs-terminal-header">
+            <span>[RUNNER_LOG_STREAM // MACOS_SUBPROCESS]</span>
+            <button onClick={fetchStatus} style={{ color: 'var(--text-muted)', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <RefreshCw size={11} /> Refresh
             </button>
           </div>
-          <div className="terminal-body">
+          <div className="obs-terminal-body">
             {statusInfo?.logs || 'Waiting for log stream...'}
           </div>
         </div>

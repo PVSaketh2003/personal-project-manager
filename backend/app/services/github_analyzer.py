@@ -254,14 +254,53 @@ class GitHubAnalyzerService:
                 category = "Web Application"
                 cat_prov = "detected"
 
+            # Collect Evidence References
+            evidence_references = [
+                f"Repository metadata queried from GitHub API (default branch: {default_branch}, language: {primary_lang or 'None'})",
+            ]
+            if readme_text:
+                evidence_references.append(f"README.md inspected ({len(readme_text)} bytes, {len(colab_urls)} Colab/notebook references found)")
+            if manifests:
+                evidence_references.append(f"Dependency manifests verified: {', '.join(manifests.keys())}")
+            if entry_points:
+                evidence_references.append(f"Application entry points mapped: {', '.join(f'{k}={v}' for k, v in entry_points.items())}")
+            if ci_workflows:
+                evidence_references.append(f"CI/CD automation detected in {len(ci_workflows)} workflow files")
+
+            # Extract key features from README bullet points if available
+            key_features_list = []
+            if readme_text:
+                for line in readme_text.splitlines():
+                    trimmed = line.strip()
+                    if (trimmed.startswith("- ") or trimmed.startswith("* ")) and len(trimmed) > 8:
+                        feat = trimmed[2:].strip()
+                        if not feat.startswith("[") and not feat.startswith("http"):
+                            key_features_list.append(feat[:120])
+                    if len(key_features_list) >= 5:
+                        break
+
+            # Deduce truthful limitations
+            limitations = []
+            has_tests = any("test" in p.lower() for p in tree_items)
+            if not has_tests:
+                limitations.append("No automated test suite detected in repository tree")
+            if not ci_workflows:
+                limitations.append("No CI/CD pipeline configured (.github/workflows)")
+            if not homepage:
+                limitations.append("No live production deployment verified (missing homepage URL)")
+            if backend_framework and not frontend_framework and not has_package_json:
+                limitations.append("Backend service only; no graphical web frontend identified")
+            if not tree_items:
+                limitations.append("Limited repository tree visibility due to API rate limits or empty repository")
+
             result = GitHubAnalysisResult(
-                repository_name=ProvenanceItem(value=repo, provenance="detected", source="GitHub API"),
-                repository_owner=ProvenanceItem(value=owner, provenance="detected", source="GitHub API"),
-                repository_url=ProvenanceItem(value=f"https://github.com/{owner}/{repo}", provenance="detected", source="GitHub API"),
+                repository_name=ProvenanceItem(value=repo, provenance="detected", source="GitHub API (repos.name)"),
+                repository_owner=ProvenanceItem(value=owner, provenance="detected", source="GitHub API (repos.owner.login)"),
+                repository_url=ProvenanceItem(value=f"https://github.com/{owner}/{repo}", provenance="detected", source="GitHub API (repos.html_url)"),
                 description=ProvenanceItem(
                     value=description or (readme_summary[:180] if readme_summary else f"Project {repo}"),
                     provenance="detected" if description else ("inferred" if readme_summary else "missing"),
-                    source="repo.description" if description else "README"
+                    source="GitHub API description" if description else "README.md introductory text"
                 ),
                 readme_summary=ProvenanceItem(
                     value=readme_summary,
@@ -271,67 +310,67 @@ class GitHubAnalyzerService:
                 primary_language=ProvenanceItem(
                     value=primary_lang,
                     provenance="detected" if primary_lang else "missing",
-                    source="GitHub API"
+                    source="GitHub API language telemetry"
                 ),
                 languages=ProvenanceItem(
                     value=languages_dict,
                     provenance="detected" if languages_dict else "missing",
-                    source="GitHub API"
+                    source="GitHub API languages endpoint"
                 ),
                 project_category=ProvenanceItem(
                     value=category,
                     provenance=cat_prov,
-                    source="manifests & structure"
+                    source="AST manifests & directory structure classification"
                 ),
                 frontend_framework=ProvenanceItem(
                     value=frontend_framework,
                     provenance="detected" if frontend_framework else "missing",
-                    source="package.json" if frontend_framework else None
+                    source="package.json dependencies" if frontend_framework else None
                 ),
                 backend_framework=ProvenanceItem(
                     value=backend_framework,
                     provenance="detected" if backend_framework else "missing",
-                    source="manifests" if backend_framework else None
+                    source="requirements.txt / pyproject.toml" if backend_framework else None
                 ),
                 database_technology=ProvenanceItem(
                     value=database_tech,
                     provenance="detected" if database_tech else "missing",
-                    source="manifests" if database_tech else None
+                    source="Manifest ORM/driver dependencies" if database_tech else None
                 ),
                 technologies=ProvenanceItem(
                     value=sorted(list(technologies)),
                     provenance="detected" if technologies else "missing",
-                    source="manifests & API"
+                    source="Aggregated manifests and language telemetry"
                 ),
                 dependency_manifests=ProvenanceItem(
                     value=manifests,
                     provenance="detected" if manifests else "missing",
-                    source="tree inspection"
+                    source="Parsed manifest files"
                 ),
                 entry_points=ProvenanceItem(
                     value=entry_points,
                     provenance="detected" if entry_points else "missing",
-                    source="tree inspection"
+                    source="Root directory file pattern matching"
                 ),
                 notebook_urls=ProvenanceItem(
                     value=colab_urls or [f"https://github.com/{owner}/{repo}/blob/{default_branch}/{nb}" for nb in notebook_files],
                     provenance="detected" if (colab_urls or notebook_files) else "missing",
-                    source="README & tree"
+                    source="README.md regex matches & .ipynb tree scan"
                 ),
                 docker_support=ProvenanceItem(
                     value=docker_support,
                     provenance="detected" if docker_support else "missing",
-                    source="tree inspection"
+                    source="Dockerfile / docker-compose.yml"
                 ),
                 ci_workflows=ProvenanceItem(
                     value=ci_workflows,
                     provenance="detected" if ci_workflows else "missing",
-                    source=".github/workflows"
+                    source=".github/workflows YAML inspection"
                 ),
                 default_branch=ProvenanceItem(
                     value=default_branch,
                     provenance="detected",
-                    source="GitHub API"
+                    source="GitHub API repository metadata"
                 ),
                 stars_count=repo_data.get("stargazers_count", 0),
                 forks_count=repo_data.get("forks_count", 0),
@@ -341,7 +380,14 @@ class GitHubAnalyzerService:
                 is_fork=repo_data.get("fork", False),
                 created_at=repo_data.get("created_at"),
                 updated_at=repo_data.get("updated_at"),
-                directory_tree_sample=tree_items[:40]
+                directory_tree_sample=tree_items[:40],
+                key_features=ProvenanceItem(
+                    value=key_features_list,
+                    provenance="detected" if key_features_list else "missing",
+                    source="README.md feature bullet points"
+                ) if key_features_list else None,
+                limitations=limitations,
+                evidence_references=evidence_references,
             )
 
             return True, result, None

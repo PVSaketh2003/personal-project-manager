@@ -32,12 +32,12 @@ describe('ProjectCard Component', () => {
 
     expect(screen.getByText('Smart Traffic Controller')).toBeInTheDocument();
     expect(screen.getByText('In Development')).toBeInTheDocument();
-    expect(screen.getByText('Demo')).toBeInTheDocument();
+    expect(screen.getByTitle(/Live Deployment/i)).toBeInTheDocument();
 
-    const deleteBtn = screen.getByTitle('Delete Project');
+    const deleteBtn = screen.getByTitle(/Delete project/i);
     fireEvent.click(deleteBtn);
 
     // Confirm dialog should appear
-    expect(screen.getByText(/Are you sure you want to delete/i)).toBeInTheDocument();
+    expect(screen.getByText(/Are you sure you want to permanently delete/i)).toBeInTheDocument();
   });
 });

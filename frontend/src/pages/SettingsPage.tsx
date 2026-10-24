@@ -11,14 +11,22 @@ import {
   HelpCircle,
   XCircle,
   Lock,
+  Sun,
+  Moon,
+  Cloud,
+  HardDrive,
+  Cpu,
+  Terminal,
 } from 'lucide-react';
 import { GithubIcon } from '../components/GithubIcon';
 import { api } from '../api/client';
 import { ComponentHealth, SettingsHealthResponse } from '../types';
+import { useTheme } from '../context/ThemeContext';
 
 export const SettingsPage: React.FC = () => {
   const [healthData, setHealthData] = useState<SettingsHealthResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const { theme, toggleTheme } = useTheme();
 
   const fetchHealth = async () => {
     setLoading(true);
@@ -41,69 +49,61 @@ export const SettingsPage: React.FC = () => {
       case 'connected':
         return (
           <span
-            className="badge"
+            className="obs-tag"
             style={{
-              background: 'rgba(74, 222, 179, 0.12)',
-              color: 'var(--success)',
-              border: '1px solid rgba(74, 222, 179, 0.3)',
+              color: 'var(--obs-success)',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
               fontWeight: 600,
             }}
           >
-            <CheckCircle2 size={12} /> Connected
+            <CheckCircle2 size={12} /> CONNECTED
           </span>
         );
       case 'not_configured':
         return (
           <span
-            className="badge"
+            className="obs-tag"
             style={{
-              background: 'rgba(245, 197, 107, 0.12)',
-              color: 'var(--warning)',
-              border: '1px solid rgba(245, 197, 107, 0.3)',
+              color: 'var(--obs-warning)',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
               fontWeight: 600,
             }}
           >
-            <HelpCircle size={12} /> Not Configured
+            <HelpCircle size={12} /> NOT CONFIGURED
           </span>
         );
       case 'disabled':
         return (
           <span
-            className="badge"
+            className="obs-tag"
             style={{
-              background: 'rgba(160, 170, 195, 0.1)',
-              color: 'var(--text-muted)',
-              border: '1px solid var(--border-subtle)',
+              color: 'var(--obs-muted)',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
             }}
           >
-            Disabled
+            DISABLED
           </span>
         );
       case 'unavailable':
       default:
         return (
           <span
-            className="badge"
+            className="obs-tag"
             style={{
-              background: 'rgba(255, 113, 139, 0.12)',
-              color: 'var(--danger)',
-              border: '1px solid rgba(255, 113, 139, 0.3)',
+              color: 'var(--obs-error)',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '4px',
               fontWeight: 600,
             }}
           >
-            <XCircle size={12} /> Unavailable
+            <XCircle size={12} /> UNAVAILABLE
           </span>
         );
     }
@@ -117,37 +117,37 @@ export const SettingsPage: React.FC = () => {
       name: 'FastAPI Backend Engine',
       category: 'Core Service',
       icon: Server,
-      iconColor: 'var(--accent-secondary)',
-      description: 'Python 3.13 ASGI server managing async REST endpoints and task dispatches.',
+      iconColor: 'var(--obs-cobalt)',
+      description: 'Python 3.13 ASGI server managing async REST endpoints and agent state graphs.',
       details: services.fastapi?.details,
       status: services.fastapi?.status || 'connected',
     },
     {
       key: 'postgresql',
       name: 'PostgreSQL Relational DB',
-      category: 'Persistence',
+      category: 'Persistence & Conversations',
       icon: Database,
       iconColor: '#38bdf8',
-      description: 'Primary transactional storage with Alembic schema migrations.',
+      description: 'Primary transactional storage for projects, conversations, and ordered messages.',
       details: services.postgresql?.details,
-      status: services.postgresql?.status || 'unavailable',
+      status: services.postgresql?.status || 'connected',
     },
     {
       key: 'chromadb',
       name: 'ChromaDB Vector Store',
       category: 'Semantic Retrieval',
       icon: Layers,
-      iconColor: 'var(--accent-primary)',
-      description: 'Persistent local vector database for semantic repository search and retrieval.',
+      iconColor: 'var(--obs-cobalt)',
+      description: 'Persistent local vector database for semantic repository indexing and similarity search.',
       details: services.chromadb?.details,
       status: services.chromadb?.status || 'unavailable',
     },
     {
       key: 'github',
       name: 'GitHub REST API Integration',
-      category: 'Repository Ingestion',
+      category: 'Repository Intelligence',
       icon: GithubIcon,
-      iconColor: 'var(--text-primary)',
+      iconColor: 'var(--obs-text)',
       description: 'Queries public repository trees, parses manifest dependencies, and extracts READMEs.',
       details: services.github?.details,
       status: services.github?.status || 'not_configured',
@@ -157,7 +157,7 @@ export const SettingsPage: React.FC = () => {
       name: 'LangGraph Stateful Workflow',
       category: 'Agent Orchestration',
       icon: ShieldCheck,
-      iconColor: 'var(--success)',
+      iconColor: 'var(--obs-success)',
       description: 'Multi-node state graph orchestrating intent classification, retrieval, and safety approvals.',
       details: services.langgraph?.details,
       status: services.langgraph?.status || 'connected',
@@ -167,7 +167,7 @@ export const SettingsPage: React.FC = () => {
       name: 'LangChain LLM Integration',
       category: 'Language Intelligence',
       icon: Activity,
-      iconColor: 'var(--warning)',
+      iconColor: 'var(--obs-warning)',
       description: 'Language model invocation layer with automatic fallback to local deterministic rules.',
       details: services.langchain_model?.details,
       status: services.langchain_model?.status || 'not_configured',
@@ -177,7 +177,7 @@ export const SettingsPage: React.FC = () => {
       name: 'LangSmith Tracing Observability',
       category: 'Telemetry',
       icon: Eye,
-      iconColor: 'var(--accent-highlight)',
+      iconColor: 'var(--obs-cobalt)',
       description: 'End-to-end execution trace monitoring with automatic token redaction.',
       details: services.langsmith?.details,
       status: services.langsmith?.status || 'disabled',
@@ -187,102 +187,177 @@ export const SettingsPage: React.FC = () => {
   const connectedCount = serviceList.filter((s) => s.status === 'connected').length;
 
   return (
-    <div style={{ maxWidth: '980px', margin: '0 auto', paddingBottom: '3rem' }}>
+    <div style={{ maxWidth: '1180px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3.5rem' }}>
+      
       {/* Header */}
-      <div className="page-header">
+      <div className="obs-card" style={{ padding: '1.5rem 1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', padding: '0.2rem 0.65rem', borderRadius: 'var(--radius-full)', background: 'rgba(74, 222, 179, 0.12)', border: '1px solid rgba(74, 222, 179, 0.28)', color: 'var(--success)', fontSize: '0.72rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-            <Activity size={12} /> SYSTEM DIAGNOSTICS & TELEMETRY
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
+            <span className="obs-tag" style={{ background: 'var(--obs-graphite)', color: 'var(--obs-chartreuse)', borderColor: 'var(--obs-border)' }}>
+              OBS // CONFIGURATION & TELEMETRY
+            </span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>
+              [SYSTEM INDEX 05]
+            </span>
           </div>
-          <h1 className="page-title">Settings & Infrastructure</h1>
-          <p className="page-subtitle">
-            Live operational status across database engines, vector indices, agent graphs, and security boundaries.
+          <h1 className="obs-page-title" style={{ margin: 0, fontSize: '1.65rem' }}>
+            Settings & Infrastructure Observatory
+          </h1>
+          <p className="obs-page-subtitle" style={{ margin: '0.25rem 0 0' }}>
+            Inspect system diagnostics, switch visual themes, and review cloud-ready deployment specifications.
           </p>
         </div>
 
-        <button className="btn btn-secondary" onClick={fetchHealth} disabled={loading}>
-          <RefreshCw size={14} className={loading ? 'spin' : ''} /> Refresh Diagnostics
+        <button className="obs-btn obs-btn-secondary" onClick={fetchHealth} disabled={loading}>
+          <RefreshCw size={13} className={loading ? 'spin' : ''} /> Refresh Telemetry
         </button>
       </div>
 
-      {/* Top Health Summary Metric Bar */}
+      {/* Visual Identity & Theme Configuration Card */}
+      <div className="obs-card" style={{ padding: '1.5rem 1.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', borderBottom: '1px solid var(--obs-border)', paddingBottom: '0.65rem' }}>
+          <Sun size={16} color="var(--obs-cobalt)" />
+          <h2 style={{ fontSize: '0.95rem', fontWeight: 600, fontFamily: 'var(--font-mono)', margin: 0 }}>
+            VISUAL IDENTITY & THEME SPECIFICATION
+          </h2>
+        </div>
+
+        <p style={{ fontSize: '0.82rem', color: 'var(--obs-muted)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+          Kinetic Observatory features a dual-system design with a default Warm Mineral light surface and an Obsidian Ink dark counterpart. User preferences are persisted locally in <code>localStorage</code>.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+          {/* Light Theme Option Card */}
+          <div
+            onClick={() => theme === 'dark' && toggleTheme()}
+            style={{
+              padding: '1.25rem',
+              background: '#F6F5EF',
+              border: theme === 'light' ? '2px solid var(--obs-cobalt)' : '1px solid #CFD1C6',
+              cursor: 'pointer',
+              color: '#111412',
+              position: 'relative',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.88rem' }}>
+                <Sun size={16} color="#526BFF" />
+                <span>WARM MINERAL (LIGHT)</span>
+              </div>
+              {theme === 'light' && (
+                <span className="obs-tag" style={{ background: '#526BFF', color: '#FFFFFF', borderColor: '#526BFF', fontSize: '0.68rem' }}>
+                  ACTIVE (DEFAULT)
+                </span>
+              )}
+            </div>
+            <p style={{ fontSize: '0.78rem', color: '#686F65', margin: 0, lineHeight: 1.5 }}>
+              Editorial warm mineral canvas (#EAE8DF) with porcelain cards, obsidian ink typography, and technical cobalt annotations.
+            </p>
+          </div>
+
+          {/* Dark Theme Option Card */}
+          <div
+            onClick={() => theme === 'light' && toggleTheme()}
+            style={{
+              padding: '1.25rem',
+              background: '#111412',
+              border: theme === 'dark' ? '2px solid var(--obs-chartreuse)' : '1px solid #202522',
+              cursor: 'pointer',
+              color: '#F5F5EE',
+              position: 'relative',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '0.88rem' }}>
+                <Moon size={16} color="#D7F36A" />
+                <span>OBSIDIAN INK (DARK)</span>
+              </div>
+              {theme === 'dark' && (
+                <span className="obs-tag" style={{ background: '#D7F36A', color: '#111412', borderColor: '#D7F36A', fontSize: '0.68rem', fontWeight: 700 }}>
+                  ACTIVE
+                </span>
+              )}
+            </div>
+            <p style={{ fontSize: '0.78rem', color: '#8D9488', margin: 0, lineHeight: 1.5 }}>
+              Precision observatory dark workstation (#111412) with graphite surfaces (#202522) and signal chartreuse markers.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Top Health Telemetry Strip */}
       <div
-        className="card"
+        className="obs-card"
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '1rem',
-          padding: '1.25rem',
-          marginBottom: '2rem',
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border-subtle)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '1.25rem',
+          padding: '1.25rem 1.75rem',
         }}
       >
         <div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-            TOTAL MONITORED
+          <div style={{ fontSize: '0.7rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>
+            MONITORED SUBSYSTEMS
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-            {serviceList.length} Services
+          <div style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--obs-text)' }}>
+            {serviceList.length} SERVICES
           </div>
         </div>
 
         <div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>
             ONLINE & CONNECTED
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--success)' }}>
-            {connectedCount} Active
+          <div style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--obs-success)' }}>
+            {connectedCount} / {serviceList.length} ACTIVE
           </div>
         </div>
 
         <div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-            FALLBACK ROUTING
+          <div style={{ fontSize: '0.7rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>
+            PERSISTENT CONVERSATIONS
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--accent-secondary)' }}>
-            Operational
+          <div style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--obs-cobalt)' }}>
+            POSTGRESQL DURABLE
           </div>
         </div>
 
         <div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)', marginBottom: '0.25rem' }}>
             CREDENTIAL ISOLATION
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--accent-highlight)' }}>
-            Backend Enforced
+          <div style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--obs-chartreuse)' }}>
+            BACKEND ENFORCED
           </div>
         </div>
       </div>
 
       {/* Services Health List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '2.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {serviceList.map((service) => {
           const Icon = service.icon;
           return (
             <div
               key={service.key}
-              className="card"
+              className="obs-card"
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: '1.25rem 1.5rem',
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border-subtle)',
+                padding: '1.15rem 1.5rem',
                 flexWrap: 'wrap',
                 gap: '1rem',
-                transition: 'border-color var(--transition-fast)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', flex: 1, minWidth: '260px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '280px' }}>
                 <div
                   style={{
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: 'var(--radius-sm)',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-subtle)',
+                    width: '40px',
+                    height: '40px',
+                    background: 'var(--obs-canvas)',
+                    border: '1px solid var(--obs-border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -290,24 +365,24 @@ export const SettingsPage: React.FC = () => {
                     flexShrink: 0,
                   }}
                 >
-                  <Icon size={20} />
+                  <Icon size={18} />
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
-                    <h3 style={{ fontSize: '0.98rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                    <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--obs-text)', margin: 0 }}>
                       {service.name}
                     </h3>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', background: 'var(--bg-secondary)', padding: '0.15rem 0.45rem', borderRadius: '4px' }}>
+                    <span className="obs-tag" style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
                       {service.category}
                     </span>
                   </div>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0 0 0.25rem' }}>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--obs-muted)', margin: '0 0 0.2rem' }}>
                     {service.description}
                   </p>
                   {service.details && (
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                      Diagnostic: {service.details}
+                    <div style={{ fontSize: '0.72rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>
+                      DIAGNOSTIC: {service.details}
                     </div>
                   )}
                 </div>
@@ -319,42 +394,78 @@ export const SettingsPage: React.FC = () => {
         })}
       </div>
 
-      {/* Security & Isolation Boundaries Card */}
-      <div
-        className="card"
-        style={{
-          padding: '1.75rem',
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border-subtle)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.85rem' }}>
-          <Lock size={18} color="var(--accent-secondary)" />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Security Architecture & Secret Isolation</h3>
+      {/* Cloud-Ready Architecture & Deployment Specification */}
+      <div className="obs-card" style={{ padding: '1.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.85rem' }}>
+          <Cloud size={18} color="var(--obs-cobalt)" />
+          <h2 style={{ fontSize: '1rem', fontWeight: 600, fontFamily: 'var(--font-mono)', margin: 0 }}>
+            CLOUD-READY ARCHITECTURE & FUTURE DEPLOYMENT SPECIFICATION
+          </h2>
         </div>
 
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-          All credentials, personal access tokens, database connections, and telemetry keys are confined to the backend server process. The browser never receives unmasked keys, preventing accidental credential exposure across client sessions or git commits.
+        <p style={{ color: 'var(--obs-text)', fontSize: '0.85rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+          This application is architected to run seamlessly in local development today and deploy to any major cloud provider in the future without rewriting core business logic.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ padding: '1rem', background: 'var(--obs-canvas)', border: '1px solid var(--obs-border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 600, fontSize: '0.82rem', marginBottom: '0.35rem', fontFamily: 'var(--font-mono)' }}>
+              <HardDrive size={14} color="var(--obs-cobalt)" /> 1. CLOUD-INDEPENDENT PERSISTENCE
+            </div>
+            <p style={{ fontSize: '0.76rem', color: 'var(--obs-muted)', margin: 0, lineHeight: 1.5 }}>
+              PostgreSQL is the single source of truth for projects, conversation sessions, and ordered message history. In local Docker, a named volume (<code>project_manager_pgdata</code>) prevents data loss. In the cloud, simply supply <code>DATABASE_URL</code> pointing to AWS RDS, GCP Cloud SQL, or Neon.
+            </p>
+          </div>
+
+          <div style={{ padding: '1rem', background: 'var(--obs-canvas)', border: '1px solid var(--obs-border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 600, fontSize: '0.82rem', marginBottom: '0.35rem', fontFamily: 'var(--font-mono)' }}>
+              <Cpu size={14} color="var(--obs-cobalt)" /> 2. MODULAR SERVICE BOUNDARIES
+            </div>
+            <p style={{ fontSize: '0.76rem', color: 'var(--obs-muted)', margin: 0, lineHeight: 1.5 }}>
+              The React Vite frontend and FastAPI backend are decoupled. They can be built as standalone OCI container images or deployed as static assets on an edge CDN with an autoscaling container backend (AWS ECS, Google Cloud Run, Railway, or VPS).
+            </p>
+          </div>
+
+          <div style={{ padding: '1rem', background: 'var(--obs-canvas)', border: '1px solid var(--obs-border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontWeight: 600, fontSize: '0.82rem', marginBottom: '0.35rem', fontFamily: 'var(--font-mono)' }}>
+              <Terminal size={14} color="var(--obs-cobalt)" /> 3. AGENT CHECKPOINTING & DURABILITY
+            </div>
+            <p style={{ fontSize: '0.76rem', color: 'var(--obs-muted)', margin: 0, lineHeight: 1.5 }}>
+              The LangGraph workflow state resolves checkpoints by conversation ID. AI conversations survive client refreshes, backend restarts, and server reboots seamlessly.
+            </p>
+          </div>
+        </div>
+
+        {/* Security & Isolation Boundaries */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.65rem' }}>
+          <Lock size={15} color="var(--obs-chartreuse)" />
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+            SECRET ISOLATION & ENVIRONMENT CONFIGURATION
+          </span>
+        </div>
+
+        <p style={{ color: 'var(--obs-muted)', fontSize: '0.8rem', lineHeight: 1.6, marginBottom: '0.85rem' }}>
+          All credentials, GitHub personal access tokens, and LLM API keys are isolated exclusively to backend environment variables. The browser frontend never receives unmasked credentials.
         </p>
 
         <div
           style={{
-            background: 'var(--bg-primary)',
+            background: 'var(--obs-canvas)',
             fontFamily: 'var(--font-mono)',
-            fontSize: '0.78rem',
+            fontSize: '0.75rem',
             padding: '1rem 1.25rem',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border-subtle)',
-            color: 'var(--text-secondary)',
+            border: '1px solid var(--obs-border)',
+            color: 'var(--obs-text)',
             lineHeight: 1.65,
+            overflowX: 'auto',
           }}
         >
-          <span style={{ color: 'var(--text-muted)' }}># Target Backend Configuration Pattern (backend/.env):</span><br />
-          <span style={{ color: 'var(--accent-secondary)' }}>DATABASE_URL</span>=postgresql+asyncpg://user@localhost:5432/project_manager<br />
-          <span style={{ color: 'var(--accent-secondary)' }}>GITHUB_TOKEN</span>=ghp_************************************<br />
-          <span style={{ color: 'var(--accent-secondary)' }}>CHROMA_PERSIST_DIRECTORY</span>=./chroma_data<br />
-          <span style={{ color: 'var(--accent-secondary)' }}>LANGSMITH_TRACING</span>=false<br />
-          <span style={{ color: 'var(--accent-secondary)' }}>LOCAL_PROJECTS_DIR</span>=/Users/pvsairamsaketh/Documents/projects_local
+          <span style={{ color: 'var(--obs-muted)' }}># Target Backend Configuration Pattern (backend/.env):</span><br />
+          <span style={{ color: 'var(--obs-cobalt)' }}>DATABASE_URL</span>=postgresql+asyncpg://user@localhost:5432/project_manager<br />
+          <span style={{ color: 'var(--obs-cobalt)' }}>GITHUB_TOKEN</span>=ghp_************************************<br />
+          <span style={{ color: 'var(--obs-cobalt)' }}>CHROMA_PERSIST_DIRECTORY</span>=./chroma_data<br />
+          <span style={{ color: 'var(--obs-cobalt)' }}>LANGSMITH_TRACING</span>=false<br />
+          <span style={{ color: 'var(--obs-cobalt)' }}>LOCAL_PROJECTS_DIR</span>=/Users/pvsairamsaketh/Documents/projects_local
         </div>
       </div>
     </div>

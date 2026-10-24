@@ -1,69 +1,128 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Menu, Plus, Search } from 'lucide-react';
+import { Search, Plus, Sun, Moon, Menu } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 interface TopNavProps {
-  onOpenMobile: () => void;
   onOpenSearch: () => void;
+  onMobileMenuToggle: () => void;
 }
 
-export const TopNav: React.FC<TopNavProps> = ({ onOpenMobile, onOpenSearch }) => {
+export const TopNav: React.FC<TopNavProps> = ({ onOpenSearch, onMobileMenuToggle }) => {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
-  const getBreadcrumb = () => {
+  // Parse path for technical breadcrumb coordinates
+  const getBreadcrumbs = () => {
     const path = location.pathname;
-    if (path === '/') return 'Dashboard';
-    if (path === '/projects') return 'All Projects';
-    if (path === '/projects/new') return 'Add Project';
-    if (path.startsWith('/projects/')) return 'Project Details';
-    if (path === '/agent') return 'AI Agent';
-    if (path === '/settings') return 'Settings & Health';
-    return 'Workspace';
+    if (path === '/') return 'OBS // CATALOG // OVERVIEW';
+    if (path.startsWith('/projects/new')) return 'OBS // INGESTION // REPO_IMPORT';
+    if (path.startsWith('/projects/')) return 'OBS // CATALOG // SPECIFICATION';
+    if (path === '/projects') return 'OBS // CATALOG // ALL_ENTRIES';
+    if (path === '/agent') return 'OBS // INTELLIGENCE // WORKSPACE';
+    if (path === '/settings') return 'OBS // SYSTEM // TELEMETRY';
+    return 'OBS // WORKSPACE';
   };
 
   return (
-    <header className="workspace-topbar">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+    <header className="observatory-topbar">
+      {/* Left: Mobile Toggle & Technical Breadcrumb */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
         <button
-          className="sidebar-collapse-btn"
-          onClick={onOpenMobile}
-          style={{ display: 'none' }}
-          id="mobile-nav-toggle"
-          aria-label="Open navigation"
+          onClick={onMobileMenuToggle}
+          className="btn-icon"
+          style={{ display: 'none', color: 'var(--text-secondary)' }}
+          title="Open Menu"
         >
-          <Menu size={20} />
+          <Menu size={18} />
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
-          <span style={{ color: 'var(--text-muted)' }}>Workspace</span>
-          <span style={{ color: 'var(--border-subtle)' }}>/</span>
-          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{getBreadcrumb()}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span
+            style={{
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: '0.74rem',
+              fontWeight: 600,
+              color: 'var(--text-secondary)',
+              letterSpacing: '0.04em',
+            }}
+          >
+            {getBreadcrumbs()}
+          </span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        {/* Global Search shortcut button */}
-        <button className="global-search-trigger" onClick={onOpenSearch} title="Search workspace (⌘K)">
+      {/* Right: Search, Theme Toggle, & Quick Add */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+        {/* Global Search Trigger */}
+        <button
+          onClick={onOpenSearch}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.55rem',
+            padding: '0.35rem 0.65rem',
+            backgroundColor: 'var(--bg-surface-elevated)',
+            border: '1px solid var(--border-structural)',
+            borderRadius: '3px',
+            color: 'var(--text-secondary)',
+            fontSize: '0.78rem',
+            cursor: 'pointer',
+          }}
+          title="Search Projects (⌘K)"
+        >
           <Search size={14} color="var(--text-muted)" />
-          <span>Search projects...</span>
-          <span className="search-kbd">⌘K</span>
+          <span style={{ display: 'none' }}>Search...</span>
+          <kbd
+            style={{
+              padding: '0.1rem 0.35rem',
+              backgroundColor: 'var(--bg-surface-recessed)',
+              border: '1px solid var(--border-structural)',
+              borderRadius: '2px',
+              fontFamily: 'JetBrains Mono, monospace',
+              fontSize: '0.65rem',
+              color: 'var(--text-muted)',
+            }}
+          >
+            ⌘K
+          </kbd>
         </button>
 
-        {/* Quick Add Project action */}
-        {location.pathname !== '/projects/new' && (
-          <Link to="/projects/new" className="btn btn-primary btn-sm">
-            <Plus size={14} /> <span>New</span>
-          </Link>
-        )}
-      </div>
+        {/* Theme Switcher */}
+        <button
+          onClick={toggleTheme}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            padding: '0.35rem 0.65rem',
+            backgroundColor: 'var(--bg-surface-elevated)',
+            border: '1px solid var(--border-structural)',
+            borderRadius: '3px',
+            color: 'var(--text-primary)',
+            fontSize: '0.78rem',
+            cursor: 'pointer',
+          }}
+          title={`Switch to ${theme === 'light' ? 'Obsidian Dark' : 'Warm Mineral Light'} Theme`}
+        >
+          {theme === 'light' ? (
+            <>
+              <Moon size={14} color="var(--text-secondary)" />
+              <span style={{ fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)' }}>DARK</span>
+            </>
+          ) : (
+            <>
+              <Sun size={14} color="var(--accent-signal)" />
+              <span style={{ fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--accent-signal)' }}>LIGHT</span>
+            </>
+          )}
+        </button>
 
-      <style>{`
-        @media (max-width: 992px) {
-          #mobile-nav-toggle {
-            display: flex !important;
-          }
-        }
-      `}</style>
+        {/* Quick Add Project Action */}
+        <Link to="/projects/new" className="btn btn-primary btn-sm">
+          <Plus size={14} /> Ingest Repo
+        </Link>
+      </div>
     </header>
   );
 };

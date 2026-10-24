@@ -8,7 +8,8 @@ import {
   Cpu,
   Globe,
   Database,
-  Code,
+  Radio,
+  ArrowUpRight,
 } from 'lucide-react';
 import { Project } from '../types';
 import { StatusBadge } from './StatusBadge';
@@ -18,7 +19,7 @@ import { GithubIcon } from './GithubIcon';
 
 interface ProjectCardProps {
   project: Project;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
   layout?: 'grid' | 'list';
 }
 
@@ -29,302 +30,304 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   const [showConsole, setShowConsole] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [localStatus, setLocalStatus] = useState(project.local_status);
 
-  const formattedDate = project.updated_at
-    ? new Date(project.updated_at).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : 'Recently';
-
-  const notebookLink =
-    project.notebook_urls && project.notebook_urls.length > 0
-      ? project.notebook_urls[0]
-      : null;
-
-  // Visual Category Icon selection
-  const getCategoryIcon = () => {
-    switch (project.project_type) {
+  const getCategoryIcon = (cat: string) => {
+    switch (cat) {
       case 'Machine Learning / Edge AI':
-        return <Cpu size={14} color="var(--secondary-accent)" />;
-      case 'Web Application':
-        return <Globe size={14} color="var(--primary-accent)" />;
+        return <Cpu size={14} />;
+      case 'Data Science & Analytics':
+        return <Database size={14} />;
       case 'Backend API':
-        return <Database size={14} color="var(--success)" />;
+        return <Terminal size={14} />;
+      case 'Jupyter Notebook':
+        return <BookOpen size={14} />;
+      case 'Web Application':
       default:
-        return <Code size={14} color="var(--highlight)" />;
+        return <Globe size={14} />;
     }
   };
 
-  // Monogram for project identity
-  const initials = project.name
-    ? project.name
-        .split(/[-_ ]+/)
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
-    : 'PR';
+  const isRunning = localStatus === 'running';
 
+  // ---------------- LIST VIEW LAYOUT ----------------
   if (layout === 'list') {
     return (
       <>
         <div
-          className="aurora-card aurora-card-interactive"
+          className="obs-card"
           style={{
-            padding: '1rem 1.25rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            padding: '1rem 1.25rem',
+            marginBottom: '0.65rem',
             gap: '1rem',
             flexWrap: 'wrap',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: '240px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '280px' }}>
             <div
               style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border-subtle)',
+                width: '36px',
+                height: '36px',
+                borderRadius: '3px',
+                backgroundColor: 'var(--bg-surface-elevated)',
+                border: '1px solid var(--border-structural)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 700,
-                color: 'var(--secondary-accent)',
-                fontSize: '0.85rem',
-                fontFamily: 'var(--font-mono)',
+                fontSize: '0.78rem',
+                fontFamily: 'JetBrains Mono, monospace',
+                color: 'var(--text-primary)',
+                flexShrink: 0,
               }}
             >
-              {initials}
+              {project.name.slice(0, 2).toUpperCase()}
             </div>
+
             <div>
-              <Link
-                to={`/projects/${project.id}`}
-                style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.98rem' }}
-              >
-                {project.name}
-              </Link>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                  {getCategoryIcon()} {project.project_type}
-                </span>
-                <span>•</span>
-                <span>Updated {formattedDate}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <Link
+                  to={`/projects/${project.id}`}
+                  style={{
+                    fontWeight: 700,
+                    fontSize: '0.92rem',
+                    color: 'var(--text-primary)',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {project.name}
+                </Link>
+                <StatusBadge status={project.status} />
+                {isRunning && (
+                  <span className="badge" style={{ backgroundColor: 'var(--success-bg)', color: 'var(--success)', border: '1px solid var(--success-border)' }}>
+                    <Radio size={10} className="pulse" /> RUNNING
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.15rem' }}>
+                {project.project_type} • {project.primary_language || 'General'} • Updated {new Date(project.updated_at).toLocaleDateString()}
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <StatusBadge status={project.status} />
-            {project.technologies?.slice(0, 3).map((t) => (
-              <span
-                key={t}
-                style={{
-                  fontSize: '0.72rem',
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid var(--border-muted)',
-                  borderRadius: 'var(--radius-xs)',
-                  padding: '0.15rem 0.45rem',
-                  color: 'var(--text-secondary)',
-                }}
+          <div style={{ display: 'flex', gap: '0.45rem', alignItems: 'center' }}>
+            {project.repository_url && (
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => setShowConsole(true)}
+                title="Launch on Localhost"
               >
-                {t}
-              </span>
-            ))}
-          </div>
+                <Terminal size={12} /> {isRunning ? 'Console' : 'Run'}
+              </button>
+            )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {project.deployment_url && (
               <a
                 href={project.deployment_url}
                 target="_blank"
                 rel="noreferrer"
-                className="btn btn-cyan btn-sm"
-                title="Open Live Demo"
+                className="btn btn-secondary btn-sm"
+                title="Open Live Deployment"
               >
                 <ExternalLink size={12} /> Demo
               </a>
             )}
 
             {project.repository_url && (
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => setShowConsole(true)}
-                title="Launch locally on Mac"
-                style={{ color: 'var(--secondary-accent)' }}
-              >
-                <Terminal size={12} /> Run
-              </button>
-            )}
-
-            {project.repository_url && (
               <a
                 href={project.repository_url}
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn-secondary btn-sm"
-                title="Open GitHub"
+                title="View GitHub Repository"
               >
-                <GithubIcon size={13} />
+                <GithubIcon size={12} /> Repo
               </a>
             )}
 
-            <Link to={`/projects/${project.id}`} className="btn btn-secondary btn-sm">
-              Details
+            <Link to={`/projects/${project.id}`} className="btn btn-primary btn-sm">
+              Inspect <ArrowUpRight size={12} />
             </Link>
 
-            <button
-              onClick={() => setShowDeleteModal(true)}
-              className="btn btn-secondary btn-sm"
-              style={{ color: 'var(--text-muted)' }}
-              title="Delete Project"
-            >
-              <Trash2 size={13} />
-            </button>
+            {onDelete && (
+              <button
+                className="btn btn-secondary btn-sm btn-icon"
+                onClick={() => setShowDeleteModal(true)}
+                title="Delete project"
+                style={{ color: 'var(--danger)' }}
+              >
+                <Trash2 size={13} />
+              </button>
+            )}
           </div>
         </div>
-
-        <ConfirmModal
-          isOpen={showDeleteModal}
-          title="Delete Project"
-          message={`Are you sure you want to delete "${project.name}"?`}
-          confirmLabel="Delete"
-          isDestructive={true}
-          onConfirm={() => {
-            setShowDeleteModal(false);
-            onDelete(project.id);
-          }}
-          onCancel={() => setShowDeleteModal(false)}
-        />
 
         <RunnerConsoleModal
           projectId={project.id}
           projectName={project.name}
           isOpen={showConsole}
           onClose={() => setShowConsole(false)}
+          onStatusChange={(st) => setLocalStatus(st as any)}
+        />
+
+        <ConfirmModal
+          isOpen={showDeleteModal}
+          title="Delete Project Entry"
+          message={`Are you sure you want to permanently delete "${project.name}" from your catalog and database?`}
+          isDestructive={true}
+          onConfirm={() => {
+            setShowDeleteModal(false);
+            if (onDelete) onDelete(project.id);
+          }}
+          onCancel={() => setShowDeleteModal(false)}
         />
       </>
     );
   }
 
-  // Standard Grid Layout
+  // ---------------- GRID VIEW LAYOUT ----------------
   return (
     <>
       <div
-        className="aurora-card aurora-card-interactive"
-        style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}
+        className="obs-card"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          minHeight: '260px',
+        }}
       >
-        <div className="aurora-glow-top" />
+        <span className="obs-corner-mark top-right">
+          {project.primary_language ? `[${project.primary_language.toUpperCase()}]` : '[SPEC]'}
+        </span>
 
-        {/* Top Header: Identity & Status */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div>
+          {/* Header Row */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.85rem' }}>
             <div
               style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: 'var(--radius-sm)',
-                background: 'var(--bg-elevated)',
-                border: '1px solid var(--border-subtle)',
+                width: '38px',
+                height: '38px',
+                borderRadius: '3px',
+                backgroundColor: 'var(--bg-surface-elevated)',
+                border: '1px solid var(--border-structural)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontWeight: 700,
-                color: 'var(--secondary-accent)',
+                fontWeight: 800,
                 fontSize: '0.82rem',
-                fontFamily: 'var(--font-mono)',
+                fontFamily: 'JetBrains Mono, monospace',
+                color: 'var(--text-primary)',
                 flexShrink: 0,
               }}
             >
-              {initials}
+              {project.name.slice(0, 2).toUpperCase()}
             </div>
-            <div>
-              <Link
-                to={`/projects/${project.id}`}
-                style={{
-                  fontSize: '1.05rem',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  lineHeight: 1.3,
-                  display: 'block',
-                }}
-              >
-                {project.name}
-              </Link>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                {getCategoryIcon()}
-                <span>{project.project_type}</span>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
+                <Link
+                  to={`/projects/${project.id}`}
+                  style={{
+                    fontWeight: 700,
+                    fontSize: '0.98rem',
+                    color: 'var(--text-primary)',
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {project.name}
+                </Link>
+                {isRunning && (
+                  <span className="badge" style={{ backgroundColor: 'var(--success-bg)', color: 'var(--success)', border: '1px solid var(--success-border)', fontSize: '0.62rem' }}>
+                    <Radio size={9} className="pulse" /> LIVE
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  {getCategoryIcon(project.project_type)} {project.project_type}
+                </span>
               </div>
             </div>
           </div>
 
-          <StatusBadge status={project.status} />
+          {/* Status Indicator */}
+          <div style={{ marginBottom: '0.85rem' }}>
+            <StatusBadge status={project.status} />
+          </div>
+
+          {/* Description */}
+          <p
+            style={{
+              fontSize: '0.82rem',
+              color: 'var(--text-secondary)',
+              lineHeight: 1.55,
+              marginBottom: '1rem',
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {project.description || 'No description cataloged for this repository.'}
+          </p>
+
+          {/* Technologies Pills */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '1.25rem' }}>
+            {project.technologies?.slice(0, 4).map((tech) => (
+              <span
+                key={tech}
+                style={{
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: '0.68rem',
+                  backgroundColor: 'var(--bg-surface-elevated)',
+                  border: '1px solid var(--border-structural)',
+                  padding: '0.15rem 0.45rem',
+                  borderRadius: '2px',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                {tech}
+              </span>
+            ))}
+            {project.technologies?.length > 4 && (
+              <span
+                style={{
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: '0.68rem',
+                  color: 'var(--text-muted)',
+                  padding: '0.15rem 0.25rem',
+                }}
+              >
+                +{project.technologies.length - 4}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Description */}
-        <p
-          style={{
-            fontSize: '0.85rem',
-            color: 'var(--text-secondary)',
-            marginBottom: '1rem',
-            lineHeight: 1.5,
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
-        >
-          {project.description || project.readme_summary || 'No description provided.'}
-        </p>
-
-        {/* Tech tags */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '1.25rem' }}>
-          {project.technologies?.slice(0, 4).map((tech) => (
-            <span
-              key={tech}
-              style={{
-                fontSize: '0.72rem',
-                background: 'var(--bg-elevated)',
-                color: 'var(--text-secondary)',
-                padding: '0.15rem 0.5rem',
-                borderRadius: 'var(--radius-xs)',
-                border: '1px solid var(--border-muted)',
-              }}
-            >
-              {tech}
-            </span>
-          ))}
-          {project.technologies && project.technologies.length > 4 && (
-            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '0.15rem 0.35rem' }}>
-              +{project.technologies.length - 4}
-            </span>
-          )}
-        </div>
-
-        {/* Footer Meta & Actions */}
+        {/* Footer Actions */}
         <div
           style={{
-            marginTop: 'auto',
-            paddingTop: '0.85rem',
-            borderTop: '1px solid var(--border-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '0.5rem',
+            paddingTop: '0.85rem',
+            borderTop: '1px solid var(--border-structural)',
           }}
         >
-          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.35rem' }}>
             {project.repository_url && (
               <a
                 href={project.repository_url}
                 target="_blank"
                 rel="noreferrer"
-                className="btn btn-secondary btn-sm"
-                title="Open GitHub Repository"
-                style={{ padding: '0.35rem 0.55rem' }}
+                className="btn-icon"
+                title="View GitHub Repository"
+                style={{ color: 'var(--text-secondary)', padding: '0.35rem' }}
               >
                 <GithubIcon size={14} />
               </a>
@@ -335,72 +338,61 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                 href={project.deployment_url}
                 target="_blank"
                 rel="noreferrer"
-                className="btn btn-cyan btn-sm"
+                className="btn-icon"
                 title="Open Live Deployment"
+                style={{ color: 'var(--text-secondary)', padding: '0.35rem' }}
               >
-                <ExternalLink size={12} /> Demo
-              </a>
-            )}
-
-            {notebookLink && (
-              <a
-                href={notebookLink}
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-secondary btn-sm"
-                title="Open Notebook"
-                style={{ padding: '0.35rem 0.55rem' }}
-              >
-                <BookOpen size={13} />
+                <ExternalLink size={14} />
               </a>
             )}
 
             {project.repository_url && (
               <button
-                className="btn btn-secondary btn-sm"
+                className="btn-icon"
                 onClick={() => setShowConsole(true)}
-                title="Launch Locally on Mac"
-                style={{ color: 'var(--secondary-accent)', borderColor: 'var(--border-cyan)' }}
+                title="Localhost Terminal"
+                style={{ color: 'var(--text-secondary)', padding: '0.35rem' }}
               >
-                <Terminal size={12} /> Run
+                <Terminal size={14} />
+              </button>
+            )}
+
+            {onDelete && (
+              <button
+                className="btn-icon"
+                onClick={() => setShowDeleteModal(true)}
+                title="Delete project"
+                style={{ color: 'var(--danger)', padding: '0.35rem' }}
+              >
+                <Trash2 size={13} />
               </button>
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-            <Link to={`/projects/${project.id}`} className="btn btn-secondary btn-sm" style={{ fontSize: '0.8rem' }}>
-              Details
-            </Link>
-            <button
-              onClick={() => setShowDeleteModal(true)}
-              className="btn btn-secondary btn-sm"
-              style={{ color: 'var(--text-muted)', padding: '0.35rem 0.5rem' }}
-              title="Delete Project"
-            >
-              <Trash2 size={13} />
-            </button>
-          </div>
+          <Link to={`/projects/${project.id}`} className="btn btn-secondary btn-sm" style={{ padding: '0.25rem 0.65rem' }}>
+            Inspect <ArrowUpRight size={12} />
+          </Link>
         </div>
       </div>
-
-      <ConfirmModal
-        isOpen={showDeleteModal}
-        title="Delete Project"
-        message={`Are you sure you want to delete "${project.name}"? This will remove the project from PostgreSQL and ChromaDB.`}
-        confirmLabel="Delete"
-        isDestructive={true}
-        onConfirm={() => {
-          setShowDeleteModal(false);
-          onDelete(project.id);
-        }}
-        onCancel={() => setShowDeleteModal(false)}
-      />
 
       <RunnerConsoleModal
         projectId={project.id}
         projectName={project.name}
         isOpen={showConsole}
         onClose={() => setShowConsole(false)}
+        onStatusChange={(st) => setLocalStatus(st as any)}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Project Entry"
+        message={`Are you sure you want to permanently delete "${project.name}" from your catalog and database?`}
+        isDestructive={true}
+        onConfirm={() => {
+          setShowDeleteModal(false);
+          if (onDelete) onDelete(project.id);
+        }}
+        onCancel={() => setShowDeleteModal(false)}
       />
     </>
   );

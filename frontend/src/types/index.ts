@@ -1,9 +1,4 @@
-export type ProjectStatus =
-  | 'Planning'
-  | 'In Development'
-  | 'Incomplete'
-  | 'Completed'
-  | 'Archived';
+export type ProjectStatus = 'In Development' | 'Completed' | 'Incomplete' | 'Archived' | 'Planning';
 
 export type ProjectCategory =
   | 'Web Application'
@@ -11,7 +6,17 @@ export type ProjectCategory =
   | 'Data Science & Analytics'
   | 'Backend API'
   | 'Jupyter Notebook'
+  | 'Developer Tool'
   | 'Other';
+
+export type ProvenanceType = 'detected' | 'inferred' | 'missing' | 'needs_review';
+
+export interface ProvenanceItem<T = any> {
+  value: T;
+  provenance: ProvenanceType;
+  source?: string | null;
+  confidence: number;
+}
 
 export interface Project {
   id: string;
@@ -24,20 +29,20 @@ export interface Project {
   status: ProjectStatus;
   project_type: ProjectCategory;
   primary_language?: string | null;
-  languages?: Record<string, number | string>;
+  languages?: Record<string, number>;
   frontend_framework?: string | null;
   backend_framework?: string | null;
   database_technology?: string | null;
   technologies: string[];
   readme_summary?: string | null;
   notebook_urls: string[];
-  dependency_manifests?: Record<string, any>;
+  dependency_manifests?: Record<string, string[]>;
   entry_points?: Record<string, string>;
   project_notes?: string | null;
   repository_analysis_metadata?: any;
   analysis_timestamp?: string | null;
   local_path?: string | null;
-  local_status: 'idle' | 'starting' | 'cloning' | 'installing_backend' | 'installing_frontend' | 'running' | 'stopped' | 'failed';
+  local_status: 'idle' | 'starting' | 'running' | 'stopped' | 'failed';
   local_port_frontend?: number | null;
   local_port_backend?: number | null;
   created_at: string;
@@ -49,7 +54,12 @@ export interface ProjectListResponse {
   total: number;
   page: number;
   page_size: number;
-  pages: number;
+  total_pages: number;
+}
+
+export interface TechnologyCount {
+  name: string;
+  count: number;
 }
 
 export interface DashboardStats {
@@ -60,17 +70,8 @@ export interface DashboardStats {
   incomplete_projects: number;
   archived_projects: number;
   planning_projects: number;
-  top_technologies: { name: string; count: number }[];
+  top_technologies: TechnologyCount[];
   recent_projects: Project[];
-}
-
-export type ProvenanceType = 'detected' | 'inferred' | 'missing' | 'needs_review';
-
-export interface ProvenanceItem<T = any> {
-  value: T;
-  provenance: ProvenanceType;
-  source?: string | null;
-  confidence: number;
 }
 
 export interface GitHubAnalysisResult {
@@ -86,7 +87,7 @@ export interface GitHubAnalysisResult {
   backend_framework: ProvenanceItem<string | null>;
   database_technology: ProvenanceItem<string | null>;
   technologies: ProvenanceItem<string[]>;
-  dependency_manifests: ProvenanceItem<Record<string, any>>;
+  dependency_manifests: ProvenanceItem<Record<string, string[]>>;
   entry_points: ProvenanceItem<Record<string, string>>;
   notebook_urls: ProvenanceItem<string[]>;
   docker_support: ProvenanceItem<boolean>;
@@ -101,6 +102,9 @@ export interface GitHubAnalysisResult {
   created_at?: string;
   updated_at?: string;
   directory_tree_sample: string[];
+  key_features?: ProvenanceItem<string[]> | null;
+  limitations?: string[];
+  evidence_references?: string[];
 }
 
 export interface GitHubAnalyzeResponse {
@@ -139,6 +143,50 @@ export interface AgentInstructionResponse {
   action_result?: any;
   status: string;
   error?: string | null;
+}
+
+export interface MessageItem {
+  id: string;
+  conversation_id: string;
+  role: 'user' | 'assistant' | 'system' | 'tool';
+  content: string;
+  message_order: number;
+  metadata_json?: Record<string, any> | null;
+  created_at: string;
+}
+
+export interface ConversationItem {
+  id: string;
+  title: string;
+  project_id?: string | null;
+  is_archived: boolean;
+  metadata_json?: Record<string, any> | null;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+  last_message_preview?: string | null;
+}
+
+export interface ConversationDetail {
+  id: string;
+  title: string;
+  project_id?: string | null;
+  is_archived: boolean;
+  metadata_json?: Record<string, any> | null;
+  created_at: string;
+  updated_at: string;
+  messages: MessageItem[];
+}
+
+export interface ConversationListResponse {
+  items: ConversationItem[];
+  total: number;
+}
+
+export interface SendMessageResponse {
+  user_message: MessageItem;
+  assistant_message: MessageItem;
+  agent_response: AgentInstructionResponse;
 }
 
 export interface ComponentHealth {

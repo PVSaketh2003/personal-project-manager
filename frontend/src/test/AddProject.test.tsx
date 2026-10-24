@@ -44,6 +44,9 @@ describe('AddProject Component', () => {
         open_issues_count: 0,
         is_fork: false,
         directory_tree_sample: ['main.py', 'requirements.txt'],
+        evidence_references: ['requirements.txt', 'main.py'],
+        limitations: [],
+        key_features: { value: ['Edge vision counter'], provenance: 'detected', confidence: 1.0 },
       },
     });
 
@@ -53,7 +56,8 @@ describe('AddProject Component', () => {
       </BrowserRouter>
     );
 
-    const input = screen.getByPlaceholderText(/In-out-Project-/i);
+    expect(screen.getByText('Add a Project')).toBeInTheDocument();
+    const input = screen.getByPlaceholderText(/github\.com/i);
     fireEvent.change(input, { target: { value: 'https://github.com/PVSaketh2003/In-out-Project-' } });
 
     const analyzeBtn = screen.getByRole('button', { name: /Analyze Repository/i });

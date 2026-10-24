@@ -1,11 +1,15 @@
 import {
   AgentInstructionResponse,
   AgentTaskListResponse,
+  ConversationDetail,
+  ConversationItem,
+  ConversationListResponse,
   DashboardStats,
   GitHubAnalyzeResponse,
   Project,
   ProjectListResponse,
   RunStatusResponse,
+  SendMessageResponse,
   SettingsHealthResponse,
 } from '../types';
 
@@ -123,7 +127,60 @@ export const api = {
     return fetchJson<RunStatusResponse>(`${BASE_URL}/projects/${id}/run/status`);
   },
 
-  // Agent
+  // AI Persistent Conversations (PostgreSQL-backed)
+  async getConversations(params?: {
+    project_id?: string;
+    include_archived?: boolean;
+    limit?: number;
+  }): Promise<ConversationListResponse> {
+    const query = new URLSearchParams();
+    if (params?.project_id) query.append('project_id', params.project_id);
+    if (params?.include_archived) query.append('include_archived', 'true');
+    if (params?.limit) query.append('limit', params.limit.toString());
+    return fetchJson<ConversationListResponse>(`${BASE_URL}/agent/conversations?${query.toString()}`);
+  },
+
+  async createConversation(data: {
+    title?: string;
+    project_id?: string | null;
+  }): Promise<ConversationDetail> {
+    return fetchJson<ConversationDetail>(`${BASE_URL}/agent/conversations`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async getConversation(id: string): Promise<ConversationDetail> {
+    return fetchJson<ConversationDetail>(`${BASE_URL}/agent/conversations/${id}`);
+  },
+
+  async updateConversation(
+    id: string,
+    data: { title?: string; project_id?: string | null; is_archived?: boolean }
+  ): Promise<ConversationItem> {
+    return fetchJson<ConversationItem>(`${BASE_URL}/agent/conversations/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteConversation(id: string): Promise<void> {
+    return fetchJson<void>(`${BASE_URL}/agent/conversations/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async sendMessageInConversation(
+    conversationId: string,
+    data: { content: string; project_id?: string | null; is_confirmed?: boolean }
+  ): Promise<SendMessageResponse> {
+    return fetchJson<SendMessageResponse>(`${BASE_URL}/agent/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Legacy Agent Tasks & Execution
   async getAgentTasks(limit: number = 20, projectId?: string): Promise<AgentTaskListResponse> {
     const query = new URLSearchParams({ limit: limit.toString() });
     if (projectId) query.append('project_id', projectId);

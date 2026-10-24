@@ -22,6 +22,8 @@ class AgentState(TypedDict):
     requires_approval: bool
     status: str
     error: Optional[str]
+    conversation_id: Optional[str]
+    messages_history: Optional[List[Dict[str, Any]]]
 
 
 # Node 1: Validate Request
@@ -60,25 +62,37 @@ def classify_intent_node(state: AgentState) -> Dict[str, Any]:
 
 # Node 3: Retrieve Project Data
 def retrieve_context_node(state: AgentState) -> Dict[str, Any]:
-    state.get("intent")
     instruction = state.get("instruction", "")
     all_projects = state.get("all_projects", [])
     target_project = state.get("target_project")
+    history = state.get("messages_history") or []
 
-    # If project_id is provided, prioritize it
+    # 1. If project_id is provided, prioritize it
     if state.get("project_id"):
         for p in all_projects:
             if p.get("id") == state["project_id"]:
                 target_project = p
                 break
 
-    # If target_project not found yet, try fuzzy matching instruction with project names
+    # 2. If target_project not found yet, try matching instruction with project names
     if not target_project:
         words = instruction.lower().split()
         for p in all_projects:
             p_name = p.get("name", "").lower()
             if p_name and any(p_name in instruction.lower() or word in p_name for word in words if len(word) > 3):
                 target_project = p
+                break
+
+    # 3. If still not found, check conversation history for previously referenced project
+    if not target_project and history:
+        for prev in reversed(history):
+            prev_content = (prev.get("content") or "").lower()
+            for p in all_projects:
+                p_name = p.get("name", "").lower()
+                if p_name and p_name in prev_content:
+                    target_project = p
+                    break
+            if target_project:
                 break
 
     return {

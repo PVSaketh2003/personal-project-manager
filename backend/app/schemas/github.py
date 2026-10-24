@@ -45,6 +45,9 @@ class GitHubAnalysisResult(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     directory_tree_sample: List[str] = Field(default_factory=list)
+    key_features: Optional[ProvenanceItem] = None
+    limitations: List[str] = Field(default_factory=list)
+    evidence_references: List[str] = Field(default_factory=list)
 
 
 class GitHubAnalyzeResponse(BaseModel):
