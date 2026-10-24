@@ -1,110 +1,72 @@
 /* ==========================================================================
-   KINETIC OBSERVATORY DESIGN SYSTEM
+   KINETIC OBSERVATORY DESIGN SYSTEM — DARK THEME (PURE OBSIDIAN)
    Art Direction: Precision-Engineered Technical Observatory & Workstation
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
-/* --- LIGHT THEME (WARM MINERAL CANVAS - DEFAULT) --- */
 :root,
+[data-theme="dark"],
 [data-theme="light"] {
-  --theme-mode: light;
-
-  /* Primary Surfaces */
-  --bg-canvas: #EAE8DF;              /* Warm mineral canvas */
-  --bg-surface: #F6F5EF;             /* Porcelain surface */
-  --bg-surface-elevated: #FFFFFF;    /* Crisp white elevated layer */
-  --bg-surface-recessed: #E1DFD6;    /* Recessed telemetry tray */
-  --bg-surface-contrast: #111412;    /* Obsidian dark overlay */
-
-  /* Structural Grid & Borders */
-  --border-structural: #CFD1C6;      /* Fine structural borders */
-  --border-subtle: rgba(17, 20, 18, 0.09);
-  --border-focus: #111412;
-  --border-technical: #B8BBAE;
-
-  /* Typography Colors */
-  --text-primary: #111412;           /* Obsidian ink */
-  --text-secondary: #686F65;         /* Secondary mineral gray */
-  --text-muted: #8D9488;             /* Muted technical annotation */
-  --text-on-dark: #F5F5EE;           /* Light porcelain text */
-
-  /* Technical Accents */
-  --accent-primary: #111412;         /* Authoritative obsidian */
-  --accent-signal: #D7F36A;          /* Signal chartreuse */
-  --accent-signal-bg: rgba(215, 243, 106, 0.22);
-  --accent-cobalt: #526BFF;          /* Technical cobalt */
-  --accent-cobalt-subtle: rgba(82, 107, 255, 0.1);
-  --accent-highlight: #4057E8;
-
-  /* Semantic Feedback */
-  --success: #32866A;
-  --success-bg: rgba(50, 134, 106, 0.12);
-  --success-border: rgba(50, 134, 106, 0.28);
-
-  --warning: #A96A22;
-  --warning-bg: rgba(169, 106, 34, 0.12);
-  --warning-border: rgba(169, 106, 34, 0.28);
-
-  --danger: #C44C4C;
-  --danger-bg: rgba(196, 76, 76, 0.12);
-  --danger-border: rgba(196, 76, 76, 0.28);
-
-  /* Elevation & Shadows */
-  --shadow-sm: 0 1px 3px rgba(17, 20, 18, 0.05);
-  --shadow-md: 0 4px 12px rgba(17, 20, 18, 0.06);
-  --shadow-lg: 0 12px 32px rgba(17, 20, 18, 0.09);
-  --shadow-technical: 2px 2px 0px #111412;
-}
-
-/* --- DARK THEME (OBSIDIAN INK COUNTERPART) --- */
-[data-theme="dark"] {
   --theme-mode: dark;
 
   /* Primary Surfaces */
-  --bg-canvas: #111412;              /* Obsidian ink canvas */
-  --bg-surface: #1B211E;             /* Graphite foundational surface */
-  --bg-surface-elevated: #242B27;    /* Elevated technical plate */
-  --bg-surface-recessed: #141816;    /* Deep instrument tray */
-  --bg-surface-contrast: #F5F5EE;    /* Porcelain surface inverted */
+  --bg-canvas: #0F1311;              /* Rich obsidian canvas */
+  --bg-surface: #171D1A;             /* Graphite foundational surface */
+  --bg-surface-elevated: #202723;    /* Elevated technical plate */
+  --bg-surface-recessed: #121614;    /* Deep instrument tray */
+  --bg-surface-contrast: #F5F5EE;
 
   /* Structural Grid & Borders */
-  --border-structural: #2E3832;      /* Graphite line */
+  --border-structural: #27322B;      /* Fine graphite hairline */
   --border-subtle: rgba(245, 245, 238, 0.08);
   --border-focus: #D7F36A;
-  --border-technical: #3D4A42;
+  --border-technical: #38463D;
 
   /* Typography Colors */
-  --text-primary: #F5F5EE;           /* Porcelain white */
-  --text-secondary: #9FA79B;         /* Soft graphite text */
-  --text-muted: #6B7468;             /* Dark telemetry label */
+  --text-primary: #F5F5EE;           /* Crisp porcelain white */
+  --text-secondary: #9BA497;         /* Soft readable graphite text */
+  --text-muted: #6E776A;             /* Muted technical label */
   --text-on-dark: #F5F5EE;
 
   /* Technical Accents */
   --accent-primary: #D7F36A;         /* Signal chartreuse */
   --accent-signal: #D7F36A;
-  --accent-signal-bg: rgba(215, 243, 106, 0.14);
+  --accent-signal-bg: rgba(215, 243, 106, 0.12);
   --accent-cobalt: #6D82FF;          /* Lighter technical cobalt */
   --accent-cobalt-subtle: rgba(109, 130, 255, 0.14);
   --accent-highlight: #889CFF;
 
   /* Semantic Feedback */
-  --success: #4ADEB3;
-  --success-bg: rgba(74, 222, 179, 0.12);
-  --success-border: rgba(74, 222, 179, 0.28);
+  --success: #34D399;
+  --success-bg: rgba(52, 211, 153, 0.12);
+  --success-border: rgba(52, 211, 153, 0.28);
 
-  --warning: #F5C56B;
-  --warning-bg: rgba(245, 197, 107, 0.12);
-  --warning-border: rgba(245, 197, 107, 0.28);
+  --warning: #F59E0B;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --warning-border: rgba(245, 158, 11, 0.28);
 
-  --danger: #FF718B;
-  --danger-bg: rgba(255, 113, 139, 0.12);
-  --danger-border: rgba(255, 113, 139, 0.28);
+  --danger: #EF4444;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  --danger-border: rgba(239, 68, 68, 0.28);
+
+  /* Direct Aliases for Component Convenience */
+  --obs-canvas: var(--bg-canvas);
+  --obs-surface: var(--bg-surface);
+  --obs-graphite: var(--bg-surface-elevated);
+  --obs-border: var(--border-structural);
+  --obs-text: var(--text-primary);
+  --obs-muted: var(--text-secondary);
+  --obs-chartreuse: var(--accent-signal);
+  --obs-cobalt: var(--accent-cobalt);
+  --obs-success: var(--success);
+  --obs-warning: var(--warning);
+  --obs-error: var(--danger);
 
   /* Elevation & Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.65);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.7);
   --shadow-technical: 2px 2px 0px #D7F36A;
 }
 
@@ -125,7 +87,6 @@ html, body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 code, kbd, samp, pre, .font-mono {
@@ -157,7 +118,7 @@ input, select, textarea {
 }
 
 .observatory-sidebar {
-  width: 256px;
+  width: 250px;
   background-color: var(--bg-surface);
   border-right: 1px solid var(--border-structural);
   display: flex;
@@ -167,11 +128,11 @@ input, select, textarea {
   top: 0;
   height: 100vh;
   z-index: 40;
-  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .observatory-sidebar.collapsed {
-  width: 72px;
+  width: 70px;
 }
 
 .observatory-main {
@@ -188,18 +149,17 @@ input, select, textarea {
   border-bottom: 1px solid var(--border-structural);
   display: flex;
   align-items: center;
-  justifyContent: space-between;
+  justify-content: space-between;
   padding: 0 1.75rem;
   position: sticky;
   top: 0;
   z-index: 30;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .observatory-content {
   flex: 1;
   padding: 2rem 2.25rem;
-  max-width: 1480px;
+  max-width: 1440px;
   width: 100%;
   margin: 0 auto;
 }
@@ -224,7 +184,7 @@ input, select, textarea {
 .obs-card {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-structural);
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 1.5rem;
   position: relative;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -239,45 +199,57 @@ input, select, textarea {
   box-shadow: var(--shadow-sm);
 }
 
-/* Technical Corner Index Marks (Observation Coordinates) */
-.obs-corner-mark {
-  position: absolute;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-  user-select: none;
-}
-.obs-corner-mark.top-right {
-  top: 8px;
-  right: 12px;
-}
-.obs-corner-mark.top-left {
-  top: 8px;
-  left: 12px;
+.obs-page-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
 }
 
-/* Technical Header Bar inside Cards */
-.obs-card-header {
-  display: flex;
+.obs-page-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.obs-tag {
+  display: inline-flex;
   align-items: center;
-  justifyContent: space-between;
-  padding-bottom: 0.85rem;
-  margin-bottom: 1.15rem;
-  border-bottom: 1px solid var(--border-structural);
+  gap: 0.35rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 3px;
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-structural);
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
 }
 
-.obs-tag-index {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  font-weight: 600;
+.obs-input {
+  width: 100%;
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-structural);
+  border-radius: 4px;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  transition: border-color 0.15s ease;
+}
+
+.obs-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.obs-input::placeholder {
   color: var(--text-muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 /* --- BUTTONS & CONTROLS --- */
-.btn {
+.obs-btn, .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -285,46 +257,36 @@ input, select, textarea {
   font-size: 0.82rem;
   font-weight: 600;
   padding: 0.55rem 1.1rem;
-  border-radius: 3px;
+  border-radius: 4px;
   border: 1px solid transparent;
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
 }
 
-/* Primary Button: Obsidian in Light / Chartreuse in Dark */
-.btn-primary {
+.obs-btn-primary, .btn-primary {
   background-color: var(--accent-primary);
-  color: var(--bg-canvas);
-  border: 1px solid var(--accent-primary);
-}
-[data-theme="light"] .btn-primary {
-  background-color: #111412;
-  color: #F5F5EE;
-}
-[data-theme="dark"] .btn-primary {
-  background-color: #D7F36A;
   color: #111412;
+  border: 1px solid var(--accent-primary);
+  font-weight: 700;
 }
-.btn-primary:hover {
+.obs-btn-primary:hover, .btn-primary:hover {
   opacity: 0.92;
   transform: translateY(-1px);
 }
-.btn-primary:active {
+.obs-btn-primary:active, .btn-primary:active {
   transform: translateY(0);
 }
 
-/* Secondary Button: Fine Structural Border */
-.btn-secondary {
-  background-color: var(--bg-surface);
+.obs-btn-secondary, .btn-secondary {
+  background-color: var(--bg-surface-elevated);
   border: 1px solid var(--border-structural);
   color: var(--text-primary);
 }
-.btn-secondary:hover {
+.obs-btn-secondary:hover, .btn-secondary:hover {
   border-color: var(--text-secondary);
-  background-color: var(--bg-surface-elevated);
+  background-color: var(--bg-surface);
 }
 
-/* Cobalt Technical Action */
 .btn-cobalt {
   background-color: var(--accent-cobalt);
   color: #FFFFFF;
@@ -333,7 +295,6 @@ input, select, textarea {
   opacity: 0.92;
 }
 
-/* Danger Button */
 .btn-danger {
   background-color: var(--danger-bg);
   border: 1px solid var(--danger-border);
@@ -344,14 +305,14 @@ input, select, textarea {
   color: #FFFFFF;
 }
 
-.btn-sm {
+.btn-sm, .obs-btn-sm {
   padding: 0.35rem 0.75rem;
   font-size: 0.76rem;
 }
 
 .btn-icon {
   padding: 0.5rem;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 /* --- FORMS & INPUTS --- */
@@ -374,7 +335,7 @@ input, select, textarea {
   width: 100%;
   background-color: var(--bg-surface-elevated);
   border: 1px solid var(--border-structural);
-  border-radius: 3px;
+  border-radius: 4px;
   padding: 0.65rem 0.85rem;
   font-size: 0.88rem;
   color: var(--text-primary);
@@ -384,7 +345,6 @@ input, select, textarea {
 .form-input:focus, .form-textarea:focus, .form-select:focus {
   outline: none;
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 1px var(--border-focus);
 }
 
 .form-input::placeholder, .form-textarea::placeholder {
@@ -393,7 +353,7 @@ input, select, textarea {
 
 .form-select {
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238D9488' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239BA497' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 1rem;
@@ -409,7 +369,7 @@ input, select, textarea {
   font-size: 0.72rem;
   font-weight: 600;
   padding: 0.2rem 0.55rem;
-  border-radius: 2px;
+  border-radius: 3px;
   letter-spacing: 0.03em;
   white-space: nowrap;
 }
@@ -422,7 +382,7 @@ input, select, textarea {
 
 .badge-status-in-development {
   background-color: var(--accent-cobalt-subtle);
-  border: 1px solid rgba(82, 107, 255, 0.3);
+  border: 1px solid rgba(109, 130, 255, 0.3);
   color: var(--accent-cobalt);
 }
 
@@ -433,13 +393,13 @@ input, select, textarea {
 }
 
 .badge-status-planning {
-  background-color: var(--bg-surface-recessed);
+  background-color: var(--bg-surface-elevated);
   border: 1px solid var(--border-structural);
   color: var(--text-secondary);
 }
 
 .badge-status-archived {
-  background-color: var(--bg-surface-recessed);
+  background-color: var(--bg-surface-elevated);
   border: 1px solid var(--border-structural);
   color: var(--text-muted);
 }
@@ -448,18 +408,13 @@ input, select, textarea {
 .badge-provenance-detected {
   background-color: var(--accent-signal-bg);
   border: 1px solid rgba(215, 243, 106, 0.4);
-  color: [data-theme="light"] #111412;
+  color: var(--accent-signal);
   font-weight: 700;
-}
-[data-theme="light"] .badge-provenance-detected {
-  background-color: #E2F586;
-  border-color: #B8D644;
-  color: #111412;
 }
 
 .badge-provenance-inferred {
   background-color: var(--accent-cobalt-subtle);
-  border: 1px solid rgba(82, 107, 255, 0.3);
+  border: 1px solid rgba(109, 130, 255, 0.3);
   color: var(--accent-cobalt);
 }
 
@@ -470,7 +425,7 @@ input, select, textarea {
 }
 
 .badge-provenance-missing {
-  background-color: var(--bg-surface-recessed);
+  background-color: var(--bg-surface-elevated);
   border: 1px solid var(--border-structural);
   color: var(--text-muted);
 }
@@ -481,7 +436,7 @@ input, select, textarea {
   align-items: stretch;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-structural);
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   margin-bottom: 2rem;
 }
@@ -541,28 +496,20 @@ input, select, textarea {
   width: 28px;
   height: 28px;
   background-color: var(--accent-primary);
-  color: var(--bg-canvas);
-  border-radius: 3px;
+  color: #111412;
+  border-radius: 4px;
   flex-shrink: 0;
   font-weight: 800;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85rem;
-}
-[data-theme="light"] .observatory-glyph {
-  background-color: #111412;
-  color: #D7F36A;
-}
-[data-theme="dark"] .observatory-glyph {
-  background-color: #D7F36A;
-  color: #111412;
 }
 
 /* --- MODAL DIALOGS --- */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(17, 20, 18, 0.65);
-  backdrop-filter: blur(2px);
+  background-color: rgba(15, 19, 17, 0.8);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -573,7 +520,7 @@ input, select, textarea {
 .modal-content {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-structural);
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 1.75rem;
   max-width: 580px;
   width: 100%;
@@ -585,22 +532,22 @@ input, select, textarea {
 
 /* --- TERMINAL STREAM VIEWER --- */
 .obs-terminal {
-  background-color: #0F1210;
-  border: 1px solid #232A25;
-  border-radius: 3px;
+  background-color: #0E1210;
+  border: 1px solid #27322B;
+  border-radius: 4px;
   overflow: hidden;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .obs-terminal-header {
-  background-color: #161C18;
+  background-color: #171D1A;
   padding: 0.5rem 0.85rem;
   display: flex;
   align-items: center;
-  justifyContent: space-between;
-  border-bottom: 1px solid #232A25;
+  justify-content: space-between;
+  border-bottom: 1px solid #27322B;
   font-size: 0.72rem;
-  color: #8D9488;
+  color: #9BA497;
 }
 
 .obs-terminal-body {
@@ -618,8 +565,8 @@ input, select, textarea {
 .command-palette-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(17, 20, 18, 0.65);
-  backdrop-filter: blur(2px);
+  background-color: rgba(15, 19, 17, 0.8);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -630,7 +577,7 @@ input, select, textarea {
 .command-palette {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-structural);
-  border-radius: 4px;
+  border-radius: 6px;
   width: 100%;
   max-width: 580px;
   box-shadow: var(--shadow-lg);
@@ -666,7 +613,7 @@ input, select, textarea {
   align-items: center;
   justify-content: space-between;
   padding: 0.65rem 0.85rem;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.1s ease;
 }
@@ -692,7 +639,18 @@ input, select, textarea {
   50% { opacity: 0.35; }
 }
 
-/* Respect prefers-reduced-motion */
+/* Skeletons */
+.skeleton {
+  background: linear-gradient(90deg, #1A211D 25%, #242D28 37%, #1A211D 63%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+  border-radius: 4px;
+}
+@keyframes skeleton-loading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;

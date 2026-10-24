@@ -1,7 +1,6 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Search, Plus, Sun, Moon, Menu } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
+import { Search, Plus, Menu } from 'lucide-react';
 
 interface TopNavProps {
   onOpenSearch: () => void;
@@ -10,23 +9,22 @@ interface TopNavProps {
 
 export const TopNav: React.FC<TopNavProps> = ({ onOpenSearch, onMobileMenuToggle }) => {
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
 
-  // Parse path for technical breadcrumb coordinates
+  // Clear, human-friendly breadcrumbs
   const getBreadcrumbs = () => {
     const path = location.pathname;
-    if (path === '/') return 'OBS // CATALOG // OVERVIEW';
-    if (path.startsWith('/projects/new')) return 'OBS // INGESTION // REPO_IMPORT';
-    if (path.startsWith('/projects/')) return 'OBS // CATALOG // SPECIFICATION';
-    if (path === '/projects') return 'OBS // CATALOG // ALL_ENTRIES';
-    if (path === '/agent') return 'OBS // INTELLIGENCE // WORKSPACE';
-    if (path === '/settings') return 'OBS // SYSTEM // TELEMETRY';
-    return 'OBS // WORKSPACE';
+    if (path === '/') return 'Dashboard';
+    if (path.startsWith('/projects/new')) return 'Projects / Add Project';
+    if (path.startsWith('/projects/')) return 'Projects / Project Details';
+    if (path === '/projects') return 'All Projects';
+    if (path === '/agent') return 'AI Workspace';
+    if (path === '/settings') return 'Settings & Infrastructure';
+    return 'Workspace';
   };
 
   return (
     <header className="observatory-topbar">
-      {/* Left: Mobile Toggle & Technical Breadcrumb */}
+      {/* Left: Mobile Menu & Current Page Title */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
         <button
           onClick={onMobileMenuToggle}
@@ -37,14 +35,13 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenSearch, onMobileMenuToggle
           <Menu size={18} />
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           <span
             style={{
-              fontFamily: 'JetBrains Mono, monospace',
-              fontSize: '0.74rem',
+              fontSize: '0.88rem',
               fontWeight: 600,
-              color: 'var(--text-secondary)',
-              letterSpacing: '0.04em',
+              color: 'var(--text-primary)',
+              letterSpacing: '-0.01em',
             }}
           >
             {getBreadcrumbs()}
@@ -52,8 +49,8 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenSearch, onMobileMenuToggle
         </div>
       </div>
 
-      {/* Right: Search, Theme Toggle, & Quick Add */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+      {/* Right: Quick Search & Add Project */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         {/* Global Search Trigger */}
         <button
           onClick={onOpenSearch}
@@ -61,24 +58,25 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenSearch, onMobileMenuToggle
             display: 'flex',
             alignItems: 'center',
             gap: '0.55rem',
-            padding: '0.35rem 0.65rem',
+            padding: '0.4rem 0.75rem',
             backgroundColor: 'var(--bg-surface-elevated)',
             border: '1px solid var(--border-structural)',
-            borderRadius: '3px',
+            borderRadius: '4px',
             color: 'var(--text-secondary)',
-            fontSize: '0.78rem',
+            fontSize: '0.8rem',
             cursor: 'pointer',
+            transition: 'border-color 0.15s ease',
           }}
           title="Search Projects (⌘K)"
         >
           <Search size={14} color="var(--text-muted)" />
-          <span style={{ display: 'none' }}>Search...</span>
+          <span style={{ fontSize: '0.78rem' }}>Search projects...</span>
           <kbd
             style={{
-              padding: '0.1rem 0.35rem',
-              backgroundColor: 'var(--bg-surface-recessed)',
+              padding: '0.1rem 0.4rem',
+              backgroundColor: 'var(--bg-surface)',
               border: '1px solid var(--border-structural)',
-              borderRadius: '2px',
+              borderRadius: '3px',
               fontFamily: 'JetBrains Mono, monospace',
               fontSize: '0.65rem',
               color: 'var(--text-muted)',
@@ -88,39 +86,9 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenSearch, onMobileMenuToggle
           </kbd>
         </button>
 
-        {/* Theme Switcher */}
-        <button
-          onClick={toggleTheme}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            padding: '0.35rem 0.65rem',
-            backgroundColor: 'var(--bg-surface-elevated)',
-            border: '1px solid var(--border-structural)',
-            borderRadius: '3px',
-            color: 'var(--text-primary)',
-            fontSize: '0.78rem',
-            cursor: 'pointer',
-          }}
-          title={`Switch to ${theme === 'light' ? 'Obsidian Dark' : 'Warm Mineral Light'} Theme`}
-        >
-          {theme === 'light' ? (
-            <>
-              <Moon size={14} color="var(--text-secondary)" />
-              <span style={{ fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)' }}>DARK</span>
-            </>
-          ) : (
-            <>
-              <Sun size={14} color="var(--accent-signal)" />
-              <span style={{ fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--accent-signal)' }}>LIGHT</span>
-            </>
-          )}
-        </button>
-
         {/* Quick Add Project Action */}
-        <Link to="/projects/new" className="btn btn-primary btn-sm">
-          <Plus size={14} /> Ingest Repo
+        <Link to="/projects/new" className="obs-btn obs-btn-primary" style={{ padding: '0.4rem 0.9rem', fontSize: '0.8rem' }}>
+          <Plus size={14} /> Add Project
         </Link>
       </div>
     </header>

@@ -156,15 +156,12 @@ export const ProjectDetail: React.FC = () => {
       
       {/* Top Breadcrumb & Action Toolbar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.82rem', fontFamily: 'var(--font-mono)' }}>
-          <Link to="/projects" style={{ color: 'var(--obs-muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-            <ArrowLeft size={13} /> CATALOG
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.85rem' }}>
+          <Link to="/projects" style={{ color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <ArrowLeft size={14} /> Projects
           </Link>
-          <span style={{ color: 'var(--obs-border)' }}>//</span>
-          <span style={{ color: 'var(--obs-text)', fontWeight: 600 }}>{project.name.toUpperCase()}</span>
-          <span className="obs-tag" style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem' }}>
-            DOSSIER #{project.id.slice(0, 8)}
-          </span>
+          <span style={{ color: 'var(--text-muted)' }}>/</span>
+          <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{project.name}</span>
         </div>
 
         {/* Action Toolbar */}
@@ -189,7 +186,7 @@ export const ProjectDetail: React.FC = () => {
               rel="noreferrer"
               className="obs-btn obs-btn-secondary"
             >
-              <ExternalLink size={13} /> Live Deployment
+              <ExternalLink size={13} /> Live Demo
             </a>
           )}
 
@@ -236,24 +233,25 @@ export const ProjectDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Observatory Dossier Hero */}
+      {/* Main Project Dossier Hero */}
       <div className="obs-card" style={{ padding: '1.75rem', position: 'relative' }}>
         <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
           
           {/* Identity Glyph Tile */}
           <div
             style={{
-              width: '64px',
-              height: '64px',
-              background: 'var(--obs-graphite)',
-              color: 'var(--obs-chartreuse)',
-              border: '1px solid var(--obs-border)',
+              width: '56px',
+              height: '56px',
+              background: 'var(--bg-surface-elevated)',
+              color: 'var(--accent-primary)',
+              border: '1px solid var(--border-structural)',
+              borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontFamily: 'var(--font-mono)',
+              fontFamily: 'JetBrains Mono, monospace',
               fontWeight: 800,
-              fontSize: '1.4rem',
+              fontSize: '1.3rem',
               flexShrink: 0,
             }}
           >
@@ -268,25 +266,25 @@ export const ProjectDetail: React.FC = () => {
               <StatusBadge status={project.status} />
               {isRunning && (
                 <span className="obs-tag" style={{ background: 'var(--obs-chartreuse)', color: '#111412', fontWeight: 700 }}>
-                  <Radio size={11} className="pulse" /> LOCALHOST ACTIVE
+                  <Radio size={11} className="pulse" /> Localhost Running
                 </span>
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: '0.85rem', color: 'var(--obs-muted)', fontSize: '0.75rem', fontFamily: 'var(--font-mono)', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1rem' }}>
-              <span style={{ color: 'var(--obs-cobalt)', fontWeight: 600 }}>[CAT: {project.project_type.toUpperCase()}]</span>
-              <span>//</span>
+            <div style={{ display: 'flex', gap: '0.75rem', color: 'var(--text-muted)', fontSize: '0.8rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1rem' }}>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{project.project_type}</span>
+              <span>•</span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Calendar size={12} /> INGESTED {new Date(project.created_at).toLocaleDateString()}
+                <Calendar size={12} /> Added {new Date(project.created_at).toLocaleDateString()}
               </span>
-              <span>//</span>
+              <span>•</span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <Clock size={12} /> UPDATED {new Date(project.updated_at).toLocaleDateString()}
+                <Clock size={12} /> Updated {new Date(project.updated_at).toLocaleDateString()}
               </span>
               {project.repository_owner && (
                 <>
-                  <span>//</span>
-                  <span>OWNER: {project.repository_owner}</span>
+                  <span>•</span>
+                  <span>Owner: {project.repository_owner}</span>
                 </>
               )}
             </div>

@@ -1,11 +1,8 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
-  Activity,
   AlertTriangle,
   Bot,
   Check,
-  Clock,
-  Code2,
   CornerDownLeft,
   Edit2,
   Layers,
@@ -15,11 +12,9 @@ import {
   Search,
   Trash2,
   User,
-  X,
 } from 'lucide-react';
 import { api } from '../api/client';
 import {
-  AgentTask,
   ConversationDetail,
   ConversationItem,
   MessageItem,
@@ -28,23 +23,20 @@ import {
 import { ConfirmModal } from '../components/ConfirmModal';
 
 export const AgentChat: React.FC = () => {
-  // Conversations State (Persistent in PostgreSQL)
+  // Persistent Conversations State
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [activeConversation, setActiveConversation] = useState<ConversationDetail | null>(null);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [conversationSearch, setConversationSearch] = useState('');
 
-  // Chat Execution State
+  // Execution & Messaging State
   const [instruction, setInstruction] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [sending, setSending] = useState(false);
-  const [activeWorkflowNode, setActiveWorkflowNode] = useState<string | null>(null);
-  const [tasks, setTasks] = useState<AgentTask[]>([]);
-  const [selectedTaskDetail, setSelectedTaskDetail] = useState<AgentTask | null>(null);
 
-  // Rename & Delete Modals
+  // Modals for Rename and Delete
   const [renameModalOpen, setRenameModalOpen] = useState(false);
   const [conversationToRename, setConversationToRename] = useState<ConversationItem | null>(null);
   const [newTitle, setNewTitle] = useState('');
@@ -57,21 +49,11 @@ export const AgentChat: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Load project scopes
+  // Load projects for project scope filter
   useEffect(() => {
     api.getProjects({ page_size: 50 }).then((res) => {
       setProjects(res.items);
     }).catch(console.error);
-  }, []);
-
-  // Load recent execution tasks
-  const loadTaskHistory = useCallback(async () => {
-    try {
-      const res = await api.getAgentTasks(10);
-      setTasks(res.items);
-    } catch (err) {
-      console.error('Failed to load tasks:', err);
-    }
   }, []);
 
   // Load conversation list from PostgreSQL
@@ -86,8 +68,7 @@ export const AgentChat: React.FC = () => {
       } else if (!activeConversationId && res.items.length > 0) {
         setActiveConversationId(res.items[0].id);
       } else if (res.items.length === 0) {
-        // If no conversations exist, auto-create the initial thread
-        const created = await api.createConversation({ title: 'Workspace Intelligence Session' });
+        const created = await api.createConversation({ title: 'New Conversation' });
         const item: ConversationItem = {
           id: created.id,
           title: created.title,
@@ -110,10 +91,9 @@ export const AgentChat: React.FC = () => {
 
   useEffect(() => {
     loadConversations();
-    loadTaskHistory();
-  }, [loadConversations, loadTaskHistory]);
+  }, [loadConversations]);
 
-  // When activeConversationId changes, load full detail and messages
+  // When activeConversationId changes, load full message history
   useEffect(() => {
     if (!activeConversationId) return;
 
@@ -134,11 +114,11 @@ export const AgentChat: React.FC = () => {
     };
   }, [activeConversationId]);
 
-  // Create new conversation session
+  // Create new conversation
   const handleCreateNewConversation = async () => {
     try {
       const created = await api.createConversation({
-        title: `Intelligence Session ${new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })}`,
+        title: `Chat ${new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })}`,
         project_id: selectedProjectId || null,
       });
       const item: ConversationItem = {
@@ -158,10 +138,11 @@ export const AgentChat: React.FC = () => {
     }
   };
 
-  // Handle Send Message (Persisted in PostgreSQL)
+  // Send Message
   const handleSend = async (confirmAction: boolean = false, prefillMsg?: string) => {
     const query = prefillMsg || instruction;
     if (!query.trim() && !confirmAction) return;
+
     if (!activeConversationId) {
       const created = await api.createConversation({ title: query.slice(0, 40) });
       setActiveConversationId(created.id);
@@ -169,10 +150,6 @@ export const AgentChat: React.FC = () => {
     }
 
     setSending(true);
-    setActiveWorkflowNode('parse_intent');
-
-    const timer1 = setTimeout(() => setActiveWorkflowNode('retrieve_context'), 350);
-    const timer2 = setTimeout(() => setActiveWorkflowNode('execute_action'), 700);
 
     try {
       const payload = {
@@ -187,8 +164,6 @@ export const AgentChat: React.FC = () => {
 
       const res = await api.sendMessageInConversation(activeConversationId, payload);
 
-      setActiveWorkflowNode('format_output');
-
       setActiveConversation((prev) => {
         if (!prev) return null;
         const filtered = prev.messages.filter((m) => m.id !== res.user_message.id);
@@ -201,7 +176,6 @@ export const AgentChat: React.FC = () => {
       const updatedList = await api.getConversations({ limit: 50 });
       setConversations(updatedList.items);
 
-      loadTaskHistory();
       setTimeout(scrollToBottom, 150);
     } catch (err: any) {
       console.error('Message execution failed:', err);
@@ -218,10 +192,7 @@ export const AgentChat: React.FC = () => {
         setActiveConversation((prev) => (prev ? { ...prev, messages: [...prev.messages, fallbackMsg] } : null));
       }
     } finally {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
       setSending(false);
-      setActiveWorkflowNode(null);
     }
   };
 
@@ -255,7 +226,7 @@ export const AgentChat: React.FC = () => {
         if (remaining.length > 0) {
           setActiveConversationId(remaining[0].id);
         } else {
-          const fresh = await api.createConversation({ title: 'New Intelligence Session' });
+          const fresh = await api.createConversation({ title: 'New Conversation' });
           const freshItem: ConversationItem = {
             id: fresh.id,
             title: fresh.title,
@@ -277,130 +248,65 @@ export const AgentChat: React.FC = () => {
     }
   };
 
-  const workflowNodes = [
-    { id: 'parse_intent', label: '1. Intent Classifier' },
-    { id: 'retrieve_context', label: '2. Context Retrieval' },
-    { id: 'execute_action', label: '3. Action & Safety Gate' },
-    { id: 'format_output', label: '4. State Persist' },
-  ];
-
   const filteredConversations = conversations.filter((c) =>
     c.title.toLowerCase().includes(conversationSearch.toLowerCase())
   );
 
   return (
-    <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      {/* Kinetic Observatory Command Header */}
-      <div className="obs-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
-            <span className="obs-tag" style={{ background: 'var(--obs-graphite)', color: 'var(--obs-chartreuse)', borderColor: 'var(--obs-border)' }}>
-              OBS // PERSISTENT COGNITIVE RUNNER
-            </span>
-            <span style={{ fontSize: '0.72rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>
-              [STATEGRAPH 04] // PG: ACTIVE
-            </span>
-          </div>
-          <h1 className="obs-page-title" style={{ fontSize: '1.6rem', margin: 0 }}>
-            AI Workspace Intelligence Console
-          </h1>
-          <p className="obs-page-subtitle" style={{ margin: '0.25rem 0 0' }}>
-            Permanent LangGraph session runner backed by PostgreSQL persistence. Sessions survive reboots and restarts.
-          </p>
-        </div>
-
-        {/* Telemetry Indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--obs-canvas)', padding: '0.5rem 0.85rem', border: '1px solid var(--obs-border)' }}>
-          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--obs-chartreuse)', boxShadow: '0 0 8px var(--obs-chartreuse)' }} />
-          <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>
-            <div style={{ fontWeight: 600, color: 'var(--obs-text)' }}>MEMORY: POSTGRESQL DURABLE</div>
-            <div style={{ color: 'var(--obs-muted)' }}>CHECKPOINTS: SYNCED</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Workflow Execution Pipeline Visualizer */}
-      <div className="obs-card" style={{ padding: '0.75rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>
-          <Activity size={14} color="var(--obs-cobalt)" />
-          <span style={{ fontWeight: 600 }}>GRAPH PIPELINE:</span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {workflowNodes.map((node, idx) => {
-            const isActive = activeWorkflowNode === node.id;
-            return (
-              <React.Fragment key={node.id}>
-                <div
-                  style={{
-                    padding: '0.3rem 0.65rem',
-                    fontSize: '0.72rem',
-                    fontFamily: 'var(--font-mono)',
-                    fontWeight: 600,
-                    background: isActive ? 'var(--obs-graphite)' : 'var(--obs-canvas)',
-                    color: isActive ? 'var(--obs-chartreuse)' : 'var(--obs-muted)',
-                    border: isActive ? '1px solid var(--obs-chartreuse)' : '1px solid var(--obs-border)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {isActive && <Loader2 size={11} className="spin" />}
-                  {node.label}
-                </div>
-                {idx < workflowNodes.length - 1 && (
-                  <span style={{ color: 'var(--obs-border)', fontSize: '0.75rem' }}>→</span>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Main 3-Column Layout: Sessions Sidebar | Main Chat | Execution Audit */}
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr 300px', gap: '1.25rem', alignItems: 'start' }}>
+    <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      
+      {/* Streamlined 2-Column Layout */}
+      <div style={{ display: 'grid', gridTemplateColumns: '270px 1fr', gap: '1.25rem', alignItems: 'start' }}>
         
-        {/* LEFT COLUMN: Persistent Sessions Sidebar */}
-        <div className="obs-card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', height: '720px' }}>
+        {/* LEFT COLUMN: Saved Conversations Sidebar */}
+        <div
+          className="obs-card"
+          style={{
+            padding: '1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '740px',
+            background: 'var(--bg-surface)',
+          }}
+        >
+          {/* New Chat Action */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
-              <MessageSquare size={14} color="var(--obs-cobalt)" />
-              <span>SAVED SESSIONS</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.85rem', fontWeight: 600 }}>
+              <MessageSquare size={16} color="var(--accent-primary)" />
+              <span>Saved Chats</span>
             </div>
             <button
               onClick={handleCreateNewConversation}
               className="obs-btn obs-btn-primary"
-              style={{ padding: '0.3rem 0.6rem', fontSize: '0.72rem' }}
-              title="Start a new persistent conversation thread"
+              style={{ padding: '0.35rem 0.75rem', fontSize: '0.76rem' }}
             >
-              <Plus size={12} /> New
+              <Plus size={13} /> New Chat
             </button>
           </div>
 
-          {/* Search Saved Sessions */}
+          {/* Search Filter */}
           <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
-            <Search size={13} style={{ position: 'absolute', left: '0.6rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--obs-muted)' }} />
+            <Search size={14} style={{ position: 'absolute', left: '0.65rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               type="text"
-              placeholder="Filter sessions..."
+              placeholder="Search chats..."
               value={conversationSearch}
               onChange={(e) => setConversationSearch(e.target.value)}
               className="obs-input"
-              style={{ paddingLeft: '2rem', fontSize: '0.78rem', height: '32px' }}
+              style={{ paddingLeft: '2.1rem', fontSize: '0.8rem', height: '34px' }}
             />
           </div>
 
-          {/* Sessions List */}
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.4rem', paddingRight: '0.2rem' }}>
+          {/* Conversations List */}
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.35rem', paddingRight: '0.2rem' }}>
             {loadingConversations ? (
-              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--obs-muted)', fontSize: '0.78rem' }}>
+              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
                 <Loader2 size={16} className="spin" style={{ margin: '0 auto 0.5rem' }} />
-                Loading sessions from PostgreSQL...
+                Loading conversations...
               </div>
             ) : filteredConversations.length === 0 ? (
-              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--obs-muted)', fontSize: '0.78rem' }}>
-                No saved sessions found. Click "+ New" to begin.
+              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                No chats found. Click "+ New Chat" to start.
               </div>
             ) : (
               filteredConversations.map((c) => {
@@ -410,25 +316,35 @@ export const AgentChat: React.FC = () => {
                     key={c.id}
                     onClick={() => setActiveConversationId(c.id)}
                     style={{
-                      padding: '0.6rem 0.75rem',
-                      background: isActive ? 'var(--obs-surface)' : 'transparent',
-                      border: isActive ? '1px solid var(--obs-cobalt)' : '1px solid transparent',
-                      borderLeft: isActive ? '3px solid var(--obs-cobalt)' : '3px solid transparent',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '4px',
+                      background: isActive ? 'var(--bg-surface-elevated)' : 'transparent',
+                      border: isActive ? '1px solid var(--border-focus)' : '1px solid transparent',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
-                      position: 'relative',
                     }}
                     onMouseEnter={(e) => {
-                      if (!isActive) e.currentTarget.style.background = 'var(--obs-canvas)';
+                      if (!isActive) e.currentTarget.style.background = 'var(--bg-surface-recessed)';
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) e.currentTarget.style.background = 'transparent';
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ fontWeight: isActive ? 600 : 500, fontSize: '0.8rem', color: 'var(--obs-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '175px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div
+                        style={{
+                          fontWeight: isActive ? 600 : 500,
+                          fontSize: '0.82rem',
+                          color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: '170px',
+                        }}
+                      >
                         {c.title}
                       </div>
+
                       <div style={{ display: 'flex', gap: '0.25rem', opacity: isActive ? 1 : 0.6 }}>
                         <button
                           onClick={(e) => {
@@ -437,10 +353,10 @@ export const AgentChat: React.FC = () => {
                             setNewTitle(c.title);
                             setRenameModalOpen(true);
                           }}
-                          style={{ background: 'none', border: 'none', color: 'var(--obs-muted)', cursor: 'pointer', padding: '2px' }}
-                          title="Rename session"
+                          style={{ color: 'var(--text-muted)', padding: '2px' }}
+                          title="Rename"
                         >
-                          <Edit2 size={11} />
+                          <Edit2 size={12} />
                         </button>
                         <button
                           onClick={(e) => {
@@ -448,16 +364,17 @@ export const AgentChat: React.FC = () => {
                             setConversationToDelete(c);
                             setDeleteModalOpen(true);
                           }}
-                          style={{ background: 'none', border: 'none', color: 'var(--obs-muted)', cursor: 'pointer', padding: '2px' }}
-                          title="Delete session"
+                          style={{ color: 'var(--text-muted)', padding: '2px' }}
+                          title="Delete"
                         >
-                          <Trash2 size={11} />
+                          <Trash2 size={12} />
                         </button>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.68rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                       <span>{new Date(c.updated_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
-                      <span>{c.message_count ?? 0} msgs</span>
+                      <span>{c.message_count ?? 0} messages</span>
                     </div>
                   </div>
                 );
@@ -466,43 +383,87 @@ export const AgentChat: React.FC = () => {
           </div>
         </div>
 
-        {/* CENTER COLUMN: Observatory Command Console */}
-        <div className="obs-card" style={{ display: 'flex', flexDirection: 'column', height: '720px', padding: '1.25rem' }}>
-          
-          {/* Top Bar: Target Project Context Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', paddingBottom: '0.85rem', borderBottom: '1px solid var(--obs-border)', marginBottom: '0.85rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.78rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)', flexShrink: 0 }}>
-              <Layers size={13} color="var(--obs-cobalt)" />
-              <span>PROJECT SCOPE:</span>
+        {/* RIGHT COLUMN: Streamlined Conversational Console */}
+        <div
+          className="obs-card"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '740px',
+            padding: '1.25rem',
+            background: 'var(--bg-surface)',
+          }}
+        >
+          {/* Header Bar: Project Scope Selector */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingBottom: '0.85rem',
+              borderBottom: '1px solid var(--border-structural)',
+              marginBottom: '0.85rem',
+              gap: '1rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '4px',
+                  background: 'var(--bg-surface-elevated)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--accent-primary)',
+                  border: '1px solid var(--border-structural)',
+                }}
+              >
+                <Bot size={18} />
+              </div>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--text-primary)' }}>
+                  AI Project Assistant
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  Persistent PostgreSQL Memory
+                </div>
+              </div>
             </div>
-            <select
-              className="obs-input"
-              style={{ fontSize: '0.8rem', padding: '0.35rem 0.65rem', flex: 1, height: '34px' }}
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-            >
-              <option value="">Global Context (All Catalog Projects)</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} [{p.status} - {p.project_type}]
-                </option>
-              ))}
-            </select>
+
+            {/* Scope Selector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              <Layers size={14} color="var(--text-muted)" />
+              <select
+                className="obs-input"
+                style={{ fontSize: '0.78rem', padding: '0.3rem 0.65rem', height: '32px', width: '220px' }}
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+              >
+                <option value="">Scope: All Projects</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          {/* Quick Action Chips */}
-          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.85rem', paddingBottom: '0.75rem', borderBottom: '1px dashed var(--obs-border)' }}>
+          {/* Quick Action Suggested Chips */}
+          <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', marginBottom: '0.85rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-structural)' }}>
             {[
               { label: '🔍 Find Computer Vision', query: 'Find all computer vision projects' },
-              { label: '📊 Summarize Catalog', query: 'Summarize my active engineering projects' },
-              { label: '📦 Inspect Manifests', query: 'Inspect package.json and requirements manifests' },
+              { label: '📊 Summarize All Projects', query: 'Summarize my active engineering projects' },
+              { label: '📦 Inspect Dependencies', query: 'Inspect package.json and requirements manifests' },
               { label: '🚀 Localhost Runner', query: 'Launch project on localhost runner' },
             ].map((chip, idx) => (
               <button
                 key={idx}
                 type="button"
                 className="obs-tag"
-                style={{ cursor: 'pointer', fontSize: '0.72rem', padding: '0.2rem 0.55rem' }}
+                style={{ cursor: 'pointer', fontSize: '0.72rem', padding: '0.25rem 0.65rem' }}
                 onClick={() => setInstruction(chip.query)}
               >
                 {chip.label}
@@ -513,13 +474,13 @@ export const AgentChat: React.FC = () => {
           {/* Messages Stream */}
           <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', paddingRight: '0.5rem' }}>
             {(!activeConversation || activeConversation.messages.length === 0) ? (
-              <div style={{ margin: 'auto', textAlign: 'center', color: 'var(--obs-muted)', maxWidth: '420px', padding: '2rem 1rem' }}>
-                <Bot size={28} color="var(--obs-cobalt)" style={{ margin: '0 auto 0.75rem' }} />
-                <div style={{ fontWeight: 600, color: 'var(--obs-text)', fontSize: '0.95rem', marginBottom: '0.35rem' }}>
-                  Observatory AI Terminal Ready
+              <div style={{ margin: 'auto', textAlign: 'center', color: 'var(--text-muted)', maxWidth: '420px', padding: '3rem 1rem' }}>
+                <Bot size={32} color="var(--accent-primary)" style={{ margin: '0 auto 0.85rem' }} />
+                <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '1rem', marginBottom: '0.35rem' }}>
+                  How can I help with your projects?
                 </div>
-                <div style={{ fontSize: '0.78rem', lineHeight: 1.5 }}>
-                  This session is connected to PostgreSQL durable memory. Ask to explore your repositories, check tech stacks, verify dependencies, or change project statuses.
+                <div style={{ fontSize: '0.82rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+                  Ask to summarize your repositories, inspect manifests, explore dependencies, or verify project statuses. Conversations are saved permanently in PostgreSQL.
                 </div>
               </div>
             ) : (
@@ -531,105 +492,102 @@ export const AgentChat: React.FC = () => {
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '0.25rem',
+                      gap: '0.35rem',
                       alignSelf: isUser ? 'flex-end' : 'flex-start',
-                      maxWidth: isUser ? '80%' : '98%',
+                      maxWidth: isUser ? '75%' : '92%',
                       width: isUser ? 'auto' : '100%',
                     }}
                   >
-                    {/* Header Label */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.68rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>
+                    {/* Role Header */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                       {isUser ? (
                         <>
-                          <User size={11} />
-                          <span>[HUMAN-OP]</span>
+                          <User size={12} />
+                          <span>You</span>
                         </>
                       ) : (
                         <>
-                          <Bot size={11} color="var(--obs-cobalt)" />
-                          <span>[OBS-AGENT // LANGGRAPH]</span>
-                          {m.metadata_json?.intent && (
-                            <span className="obs-tag" style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>
-                              node:{m.metadata_json.intent}
-                            </span>
-                          )}
+                          <Bot size={12} color="var(--accent-primary)" />
+                          <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>AI Assistant</span>
                         </>
                       )}
                       <span>•</span>
                       <span>{new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
 
-                    {/* Content Box */}
+                    {/* Bubble Content */}
                     {isUser ? (
                       <div
                         style={{
-                          background: 'var(--obs-graphite)',
-                          color: '#F5F5EE',
-                          border: '1px solid var(--obs-border)',
-                          padding: '0.65rem 0.95rem',
-                          fontSize: '0.85rem',
-                          fontFamily: 'var(--font-mono)',
+                          background: 'var(--bg-surface-elevated)',
+                          border: '1px solid var(--border-structural)',
+                          padding: '0.75rem 1rem',
+                          borderRadius: '6px',
+                          color: 'var(--text-primary)',
+                          fontSize: '0.88rem',
                           lineHeight: 1.5,
                         }}
                       >
-                        <span style={{ color: 'var(--obs-chartreuse)', marginRight: '6px' }}>❯</span>
                         {m.content}
                       </div>
                     ) : (
                       <div
                         style={{
-                          background: 'var(--obs-surface)',
-                          border: '1px solid var(--obs-border)',
-                          padding: '0.9rem 1.15rem',
+                          background: 'var(--bg-surface-elevated)',
+                          border: '1px solid var(--border-structural)',
+                          borderRadius: '6px',
+                          padding: '1rem 1.15rem',
                         }}
                       >
-                        <div style={{ fontSize: '0.85rem', lineHeight: 1.6, color: 'var(--obs-text)', whiteSpace: 'pre-wrap' }}>
+                        <div style={{ fontSize: '0.88rem', lineHeight: 1.6, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>
                           {m.content}
                         </div>
 
-                        {/* Safety Gate Explicit Confirmation Banner */}
+                        {/* Safety Gate Confirmation Banner */}
                         {m.metadata_json?.requires_approval && m.metadata_json?.proposed_changes && (
                           <div
                             style={{
                               marginTop: '0.85rem',
-                              padding: '0.75rem 1rem',
-                              background: 'rgba(169, 106, 34, 0.08)',
-                              border: '1px solid var(--obs-warning)',
+                              padding: '0.85rem 1rem',
+                              background: 'rgba(245, 158, 11, 0.1)',
+                              border: '1px solid var(--warning)',
+                              borderRadius: '4px',
                             }}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.78rem', color: 'var(--obs-warning)', fontWeight: 600, marginBottom: '0.35rem' }}>
-                              <AlertTriangle size={14} /> SAFETY GATE: DATABASE MUTATION REQUIRES CONFIRMATION
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: 'var(--warning)', fontWeight: 600, marginBottom: '0.35rem' }}>
+                              <AlertTriangle size={15} /> Database Mutation Confirmation Required
                             </div>
-                            <div style={{ fontSize: '0.74rem', color: 'var(--obs-muted)', marginBottom: '0.65rem', fontFamily: 'var(--font-mono)' }}>
-                              Proposed state change: <code>{JSON.stringify(m.metadata_json.proposed_changes)}</code>
+                            <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', marginBottom: '0.65rem' }}>
+                              Target state change: <code>{JSON.stringify(m.metadata_json.proposed_changes)}</code>
                             </div>
                             <button
                               className="obs-btn obs-btn-primary"
                               onClick={() => handleSend(true, `Apply changes: ${JSON.stringify(m.metadata_json?.proposed_changes)}`)}
                               disabled={sending}
-                              style={{ background: 'var(--obs-warning)', color: '#111412', fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}
+                              style={{ background: 'var(--warning)', color: '#111412', fontSize: '0.76rem', padding: '0.35rem 0.75rem' }}
                             >
-                              <Check size={13} /> Confirm & Apply to PostgreSQL
+                              <Check size={13} /> Confirm & Apply to Database
                             </button>
                           </div>
                         )}
 
-                        {/* Action Result / Artifact Payload */}
+                        {/* Structured Output Payload */}
                         {m.metadata_json?.action_result && (
                           <div
                             style={{
                               marginTop: '0.75rem',
                               padding: '0.65rem 0.85rem',
-                              background: 'var(--obs-canvas)',
-                              border: '1px solid var(--obs-border)',
+                              background: 'var(--bg-canvas)',
+                              borderRadius: '4px',
+                              border: '1px solid var(--border-structural)',
                               fontFamily: 'var(--font-mono)',
-                              fontSize: '0.72rem',
-                              color: 'var(--obs-text)',
+                              fontSize: '0.74rem',
+                              color: 'var(--text-primary)',
                               overflowX: 'auto',
                             }}
                           >
-                            <div style={{ color: 'var(--obs-cobalt)', fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.68rem' }}>
-                              STATE RETRIEVAL PAYLOAD:
+                            <div style={{ color: 'var(--accent-primary)', fontWeight: 600, marginBottom: '0.25rem', fontSize: '0.7rem' }}>
+                              Result Data:
                             </div>
                             <pre style={{ margin: 0 }}>
                               {typeof m.metadata_json.action_result === 'string'
@@ -645,24 +603,24 @@ export const AgentChat: React.FC = () => {
               })
             )}
 
-            {/* Active Loading Animation */}
+            {/* Active Thinking Animation */}
             {sending && (
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.65rem',
+                  gap: '0.55rem',
                   padding: '0.65rem 0.95rem',
-                  background: 'var(--obs-surface)',
-                  border: '1px solid var(--obs-border)',
+                  background: 'var(--bg-surface-elevated)',
+                  border: '1px solid var(--border-structural)',
+                  borderRadius: '6px',
                   width: 'fit-content',
-                  fontSize: '0.78rem',
-                  fontFamily: 'var(--font-mono)',
-                  color: 'var(--obs-cobalt)',
+                  fontSize: '0.8rem',
+                  color: 'var(--accent-primary)',
                 }}
               >
                 <Loader2 size={14} className="spin" />
-                <span>Executing LangGraph node ({activeWorkflowNode || 'processing'})...</span>
+                <span>AI Assistant is analyzing...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -680,7 +638,7 @@ export const AgentChat: React.FC = () => {
               alignItems: 'center',
               marginTop: '0.85rem',
               paddingTop: '0.75rem',
-              borderTop: '1px solid var(--obs-border)',
+              borderTop: '1px solid var(--border-structural)',
             }}
           >
             <div style={{ position: 'relative', flex: 1 }}>
@@ -688,12 +646,11 @@ export const AgentChat: React.FC = () => {
                 type="text"
                 className="obs-input"
                 style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.82rem',
+                  fontSize: '0.86rem',
                   paddingRight: '2.5rem',
-                  height: '42px',
+                  height: '44px',
                 }}
-                placeholder="Send instruction (e.g. 'Summarize In-out-Project-', 'Find all FastAPI apps')..."
+                placeholder="Ask or command (e.g. 'Summarize In-out-Project-', 'Find all FastAPI apps')..."
                 value={instruction}
                 onChange={(e) => setInstruction(e.target.value)}
                 disabled={sending}
@@ -704,9 +661,8 @@ export const AgentChat: React.FC = () => {
                   right: '0.75rem',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: 'var(--obs-muted)',
-                  fontSize: '0.68rem',
-                  fontFamily: 'var(--font-mono)',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.7rem',
                   pointerEvents: 'none',
                 }}
               >
@@ -718,118 +674,19 @@ export const AgentChat: React.FC = () => {
               type="submit"
               className="obs-btn obs-btn-primary"
               disabled={sending || !instruction.trim()}
-              style={{ padding: '0 1.25rem', height: '42px', fontSize: '0.82rem' }}
+              style={{ padding: '0 1.25rem', height: '44px', fontSize: '0.84rem' }}
             >
-              <CornerDownLeft size={14} /> Execute
+              <CornerDownLeft size={14} /> Send
             </button>
           </form>
-        </div>
-
-        {/* RIGHT COLUMN: Execution Audit & Deterministic Matrix */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          
-          {/* Audit Log Card */}
-          <div className="obs-card" style={{ height: '450px', overflowY: 'auto', padding: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.78rem', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
-                <Clock size={13} color="var(--obs-cobalt)" />
-                <span>TASK AUDIT LOG</span>
-              </div>
-              <span className="obs-tag" style={{ fontSize: '0.68rem' }}>
-                {tasks.length} runs
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {tasks.map((t) => (
-                <div
-                  key={t.id}
-                  onClick={() => setSelectedTaskDetail(t)}
-                  style={{
-                    padding: '0.55rem 0.75rem',
-                    background: 'var(--obs-canvas)',
-                    border: '1px solid var(--obs-border)',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--obs-cobalt)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--obs-border)')}
-                >
-                  <div style={{ fontWeight: 600, color: 'var(--obs-text)', fontSize: '0.75rem', marginBottom: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {t.instruction}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--obs-muted)', fontSize: '0.68rem', fontFamily: 'var(--font-mono)' }}>
-                    <span>{t.task_type}</span>
-                    <span
-                      style={{
-                        color: t.status === 'completed' ? 'var(--obs-success)' : t.status === 'needs_approval' ? 'var(--obs-warning)' : 'var(--obs-error)',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {t.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-
-              {tasks.length === 0 && (
-                <div style={{ color: 'var(--obs-muted)', fontSize: '0.75rem', textAlign: 'center', padding: '2rem 0' }}>
-                  No execution tasks logged yet.
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Selected Task Details Inspector */}
-          {selectedTaskDetail && (
-            <div className="obs-card" style={{ padding: '0.85rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--obs-cobalt)', fontFamily: 'var(--font-mono)' }}>
-                  RUN #{selectedTaskDetail.id.slice(0, 8)}
-                </span>
-                <button
-                  onClick={() => setSelectedTaskDetail(null)}
-                  style={{ fontSize: '0.7rem', color: 'var(--obs-muted)', cursor: 'pointer', background: 'none', border: 'none' }}
-                >
-                  <X size={12} />
-                </button>
-              </div>
-              <div style={{ fontSize: '0.74rem', color: 'var(--obs-text)', marginBottom: '0.4rem', fontWeight: 500 }}>
-                {selectedTaskDetail.instruction}
-              </div>
-              <div style={{ fontSize: '0.68rem', color: 'var(--obs-muted)', display: 'flex', flexDirection: 'column', gap: '0.2rem', fontFamily: 'var(--font-mono)' }}>
-                <div><strong>TYPE:</strong> {selectedTaskDetail.task_type}</div>
-                <div><strong>STATUS:</strong> <span style={{ color: selectedTaskDetail.status === 'completed' ? 'var(--obs-success)' : 'var(--obs-error)' }}>{selectedTaskDetail.status}</span></div>
-                {selectedTaskDetail.error_details && (
-                  <div style={{ color: 'var(--obs-error)' }}><strong>ERROR:</strong> {selectedTaskDetail.error_details}</div>
-                )}
-                <div><strong>TIME:</strong> {new Date(selectedTaskDetail.created_at).toLocaleTimeString()}</div>
-              </div>
-            </div>
-          )}
-
-          {/* Engine Capability Matrix */}
-          <div className="obs-card" style={{ padding: '1rem' }}>
-            <div style={{ fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.45rem', fontFamily: 'var(--font-mono)' }}>
-              <Code2 size={13} color="var(--obs-cobalt)" />
-              <span>DETERMINISTIC CAPABILITIES</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.72rem', color: 'var(--obs-muted)', fontFamily: 'var(--font-mono)' }}>
-              <div>• Keyword & semantic project filtering</div>
-              <div>• AST manifest parsing (package.json, pyproject)</div>
-              <div>• Safe project status transitions</div>
-              <div>• Localhost subprocess management</div>
-              <div>• PostgreSQL durable conversation state</div>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* Rename Modal */}
       <ConfirmModal
         isOpen={renameModalOpen}
-        title="Rename Session"
-        message="Enter a new title for this conversation session:"
+        title="Rename Chat"
+        message="Enter a new title for this conversation:"
         confirmText="Save Title"
         cancelText="Cancel"
         onConfirm={handleRename}
@@ -853,9 +710,9 @@ export const AgentChat: React.FC = () => {
       {/* Delete Modal */}
       <ConfirmModal
         isOpen={deleteModalOpen}
-        title="Delete Session"
-        message={`Are you sure you want to permanently delete "${conversationToDelete?.title}"? All messages in this thread will be permanently deleted from PostgreSQL.`}
-        confirmText="Delete Session"
+        title="Delete Chat"
+        message={`Are you sure you want to delete "${conversationToDelete?.title}"? All messages in this thread will be permanently deleted.`}
+        confirmText="Delete Chat"
         cancelText="Keep"
         isDestructive={true}
         onConfirm={handleDelete}

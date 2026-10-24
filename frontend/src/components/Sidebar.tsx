@@ -4,7 +4,7 @@ import {
   LayoutDashboard,
   FolderGit2,
   PlusCircle,
-  Cpu,
+  Bot,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -37,11 +37,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, []);
 
   const navItems = [
-    { to: '/', label: 'Dashboard', index: '01', icon: LayoutDashboard },
-    { to: '/projects', label: 'All Projects', index: '02', icon: FolderGit2 },
-    { to: '/projects/new', label: 'Add Project', index: '03', icon: PlusCircle },
-    { to: '/agent', label: 'AI Workspace', index: '04', icon: Cpu },
-    { to: '/settings', label: 'Settings', index: '05', icon: Settings },
+    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/projects', label: 'All Projects', icon: FolderGit2 },
+    { to: '/projects/new', label: 'Add Project', icon: PlusCircle },
+    { to: '/agent', label: 'AI Assistant', icon: Bot },
+    { to: '/settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -57,16 +57,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <div className="observatory-glyph" title="Kinetic Observatory">
-            KO
+          <div className="observatory-glyph" title="Project Manager">
+            PM
           </div>
           {!collapsed && (
             <div>
-              <div style={{ fontWeight: 800, fontSize: '0.92rem', letterSpacing: '-0.02em', lineHeight: 1.1, color: 'var(--text-primary)' }}>
-                OBSERVATORY
+              <div style={{ fontWeight: 700, fontSize: '0.92rem', letterSpacing: '-0.02em', lineHeight: 1.1, color: 'var(--text-primary)' }}>
+                Project Manager
               </div>
-              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.62rem', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
-                DEV WORKSPACE
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                Developer Workspace
               </div>
             </div>
           )}
@@ -77,14 +77,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onToggle}
             className="btn-icon"
             style={{ color: 'var(--text-muted)' }}
-            title="Collapse Rail (⌘B)"
+            title="Collapse Sidebar (⌘B)"
           >
             <ChevronLeft size={16} />
           </button>
         )}
       </div>
 
-      {/* Navigation Rail */}
+      {/* Navigation Links */}
       <nav style={{ padding: '0.85rem 0.65rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -98,70 +98,60 @@ export const Sidebar: React.FC<SidebarProps> = ({
               style={({ isActive }) => ({
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.65rem',
-                padding: collapsed ? '0.65rem 0' : '0.55rem 0.75rem',
+                gap: '0.75rem',
+                padding: collapsed ? '0.65rem 0' : '0.6rem 0.85rem',
                 justifyContent: collapsed ? 'center' : 'flex-start',
-                borderRadius: '3px',
+                borderRadius: '4px',
                 color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                 backgroundColor: isActive ? 'var(--bg-surface-elevated)' : 'transparent',
                 border: isActive ? '1px solid var(--border-structural)' : '1px solid transparent',
-                fontWeight: isActive ? 700 : 500,
-                fontSize: '0.82rem',
+                borderLeft: isActive ? '3px solid var(--accent-primary)' : '1px solid transparent',
+                fontWeight: isActive ? 600 : 500,
+                fontSize: '0.84rem',
                 transition: 'all 0.15s ease',
               })}
             >
-              <Icon size={16} style={{ flexShrink: 0 }} />
+              <Icon size={16} style={{ flexShrink: 0, color: 'inherit' }} />
               {!collapsed && (
-                <>
-                  <span style={{ flex: 1 }}>{item.label}</span>
-                  <span
-                    style={{
-                      fontFamily: 'JetBrains Mono, monospace',
-                      fontSize: '0.65rem',
-                      color: 'var(--text-muted)',
-                    }}
-                  >
-                    {item.index}
-                  </span>
-                </>
+                <span style={{ flex: 1 }}>{item.label}</span>
               )}
             </NavLink>
           );
         })}
       </nav>
 
-      {/* Footer & Telemetry Status */}
+      {/* Database Connection Status Footer */}
       <div
         style={{
-          padding: '0.85rem 0.75rem',
+          padding: '0.85rem 0.85rem',
           borderTop: '1px solid var(--border-structural)',
           backgroundColor: 'var(--bg-surface-recessed)',
         }}
       >
         {collapsed ? (
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <button onClick={onToggle} className="btn-icon" title="Expand Rail">
+            <button onClick={onToggle} className="btn-icon" title="Expand Sidebar">
               <ChevronRight size={16} color="var(--text-muted)" />
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.72rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <Database size={13} color="var(--text-muted)" />
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)' }}>POSTGRES</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.74rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text-secondary)' }}>
+              <Database size={13} />
+              <span>PostgreSQL</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {backendStatus === 'connected' ? (
-                <>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--success)' }} />
-                  <span style={{ color: 'var(--success)', fontWeight: 600, fontSize: '0.68rem' }}>ONLINE</span>
-                </>
-              ) : (
-                <>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--danger)' }} />
-                  <span style={{ color: 'var(--danger)', fontWeight: 600, fontSize: '0.68rem' }}>OFFLINE</span>
-                </>
-              )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: backendStatus === 'connected' ? 'var(--success)' : 'var(--danger)',
+                }}
+              />
+              <span style={{ color: backendStatus === 'connected' ? 'var(--success)' : 'var(--danger)', fontWeight: 600, fontSize: '0.7rem' }}>
+                {backendStatus === 'connected' ? 'Connected' : 'Offline'}
+              </span>
             </div>
           </div>
         )}

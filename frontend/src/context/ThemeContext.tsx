@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark';
+type Theme = 'dark';
 
 interface ThemeContextType {
   theme: Theme;
@@ -9,32 +9,27 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'light',
+  theme: 'dark',
   toggleTheme: () => {},
   setTheme: () => {},
 });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    const saved = localStorage.getItem('project_manager_theme');
-    if (saved === 'dark' || saved === 'light') {
-      return saved;
-    }
-    // Default to warm mineral light theme as specified in the prompt
-    return 'light';
-  });
+  // Dark theme only as requested
+  const [theme] = useState<Theme>('dark');
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('project_manager_theme', theme);
-  }, [theme]);
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('project_manager_theme', 'dark');
+  }, []);
 
   const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
+    // Kept for interface compatibility; system is dark theme only
   };
 
-  const setTheme = (t: Theme) => {
-    setThemeState(t);
+  const setTheme = () => {
+    // Kept for interface compatibility; system is dark theme only
   };
 
   return (

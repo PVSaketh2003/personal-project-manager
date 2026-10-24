@@ -100,14 +100,11 @@ export const ProjectsList: React.FC = () => {
         }}
       >
         <div>
-          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.72rem', color: 'var(--text-muted)', letterSpacing: '0.06em', marginBottom: '0.25rem' }}>
-            INDEX // ARCHIVE ENTRIES [{total} TOTAL]
-          </div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-primary)' }}>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--text-primary)', margin: '0 0 0.35rem' }}>
             All Projects
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>
-            Complete registry of all software projects, models, tools, and notebooks.
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
+            {total} {total === 1 ? 'repository' : 'repositories'} cataloged in your workspace.
           </p>
         </div>
 
