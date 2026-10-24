@@ -1,0 +1,57 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Backend Lint, Import & Pytest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: 'backend/requirements.txt'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify Application Imports
+        run: |
+          python -c "import app.main; import app.models; import app.api.router; print('All modules imported successfully')"
+
+      - name: Run Ruff Linting
+        run: |
+          ruff check app
+
+      - name: Run Pytest Test Suite
+        env:
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+          CHROMA_PERSIST_DIR: "./chroma_ci_data"
+          LANGSMITH_TRACING: "false"
+        run: |
+          pytest -v
