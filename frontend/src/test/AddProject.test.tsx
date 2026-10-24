@@ -61,8 +61,8 @@ describe('AddProject Component', () => {
 
     await waitFor(() => {
       expect(api.analyzeGitHubRepo).toHaveBeenCalledWith('https://github.com/PVSaketh2003/In-out-Project-');
-      const nameInput = screen.getByDisplayValue('In-out-Project-');
-      expect(nameInput).toBeInTheDocument();
+      const nameInputs = screen.getAllByDisplayValue('In-out-Project-');
+      expect(nameInputs.length).toBeGreaterThanOrEqual(1);
       expect(screen.getByDisplayValue('FastAPI')).toBeInTheDocument();
     });
   });

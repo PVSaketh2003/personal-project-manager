@@ -49,7 +49,7 @@ describe('Dashboard Component', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Personal Project Portfolio')).toBeInTheDocument();
+      expect(screen.getByText('Your projects, in one workspace.')).toBeInTheDocument();
       expect(screen.getByText('Total Projects')).toBeInTheDocument();
       expect(screen.getByText('Edge AI Detection')).toBeInTheDocument();
     });

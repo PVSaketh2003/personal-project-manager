@@ -8,6 +8,9 @@ import {
   ChevronLeft,
   ChevronRight,
   FolderGit2,
+  LayoutGrid,
+  List,
+  X,
 } from 'lucide-react';
 import { api } from '../api/client';
 import { Project } from '../types';
@@ -20,8 +23,9 @@ export const ProjectsList: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  // Filters state from URL or default
+  // Filters state from URL
   const page = parseInt(searchParams.get('page') || '1', 10);
   const search = searchParams.get('search') || '';
   const status = searchParams.get('status') || 'All';
@@ -75,6 +79,11 @@ export const ProjectsList: React.FC = () => {
     updateParam('search', searchInput.trim());
   };
 
+  const clearAllFilters = () => {
+    setSearchInput('');
+    setSearchParams(new URLSearchParams());
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await api.deleteProject(id);
@@ -84,24 +93,67 @@ export const ProjectsList: React.FC = () => {
     }
   };
 
+  const hasActiveFilters = search || status !== 'All' || category !== 'All' || technology !== 'All';
+
   return (
     <div>
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">All Projects</h1>
+          <h1 className="page-title">Workspace Repositories</h1>
           <p className="page-subtitle">
-            Explore, filter, run locally, and showcase every repository in your catalog.
+            Catalog of {total} applications, edge AI pipelines, and service backends.
           </p>
         </div>
-        <Link to="/projects/new" className="btn btn-primary">
-          <Plus size={16} /> Add Project
-        </Link>
+
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          {/* Grid / List view toggle */}
+          <div
+            style={{
+              display: 'flex',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '2px',
+            }}
+          >
+            <button
+              onClick={() => setViewMode('grid')}
+              style={{
+                padding: '0.4rem 0.65rem',
+                borderRadius: 'var(--radius-xs)',
+                background: viewMode === 'grid' ? 'var(--bg-secondary)' : 'transparent',
+                color: viewMode === 'grid' ? 'var(--secondary-accent)' : 'var(--text-muted)',
+              }}
+              title="Grid View"
+              aria-label="Grid view"
+            >
+              <LayoutGrid size={15} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              style={{
+                padding: '0.4rem 0.65rem',
+                borderRadius: 'var(--radius-xs)',
+                background: viewMode === 'list' ? 'var(--bg-secondary)' : 'transparent',
+                color: viewMode === 'list' ? 'var(--secondary-accent)' : 'var(--text-muted)',
+              }}
+              title="List View"
+              aria-label="List view"
+            >
+              <List size={15} />
+            </button>
+          </div>
+
+          <Link to="/projects/new" className="btn btn-primary">
+            <Plus size={16} /> Add Project
+          </Link>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
       <div
-        className="card"
+        className="aurora-card"
         style={{
           marginBottom: '2rem',
           padding: '1.25rem',
@@ -116,7 +168,7 @@ export const ProjectsList: React.FC = () => {
               size={18}
               style={{
                 position: 'absolute',
-                left: '12px',
+                left: '14px',
                 top: '50%',
                 transform: 'translateY(-50%)',
                 color: 'var(--text-muted)',
@@ -125,19 +177,19 @@ export const ProjectsList: React.FC = () => {
             <input
               type="text"
               className="form-input"
-              placeholder="Search projects by name, description, technologies..."
+              placeholder="Search projects by title, framework (FastAPI, React), or keyword..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              style={{ paddingLeft: '38px' }}
+              style={{ paddingLeft: '42px', height: '42px' }}
             />
           </div>
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className="btn btn-primary btn-sm">
             Search
           </button>
           {search && (
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-secondary btn-sm"
               onClick={() => {
                 setSearchInput('');
                 updateParam('search', '');
@@ -148,25 +200,25 @@ export const ProjectsList: React.FC = () => {
           )}
         </form>
 
-        {/* Filters Row */}
+        {/* Filter Controls Row */}
         <div
           style={{
             display: 'flex',
             gap: '1rem',
             alignItems: 'center',
             flexWrap: 'wrap',
-            paddingTop: '0.75rem',
+            paddingTop: '0.85rem',
             borderTop: '1px solid var(--border-subtle)',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            <Filter size={14} /> Filter:
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+            <Filter size={14} color="var(--secondary-accent)" /> Filter by:
           </div>
 
-          {/* Status Filter */}
+          {/* Status Dropdown */}
           <select
             className="form-select"
-            style={{ width: 'auto', minWidth: '150px', fontSize: '0.85rem' }}
+            style={{ width: 'auto', minWidth: '150px', fontSize: '0.85rem', height: '36px', padding: '0 0.75rem' }}
             value={status}
             onChange={(e) => updateParam('status', e.target.value)}
           >
@@ -178,10 +230,10 @@ export const ProjectsList: React.FC = () => {
             <option value="Archived">Archived</option>
           </select>
 
-          {/* Category Filter */}
+          {/* Category Dropdown */}
           <select
             className="form-select"
-            style={{ width: 'auto', minWidth: '170px', fontSize: '0.85rem' }}
+            style={{ width: 'auto', minWidth: '170px', fontSize: '0.85rem', height: '36px', padding: '0 0.75rem' }}
             value={category}
             onChange={(e) => updateParam('category', e.target.value)}
           >
@@ -194,12 +246,12 @@ export const ProjectsList: React.FC = () => {
             <option value="Other">Other</option>
           </select>
 
-          {/* Sort By */}
+          {/* Sort By Dropdown */}
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <SlidersHorizontal size={14} color="var(--text-muted)" />
             <select
               className="form-select"
-              style={{ width: 'auto', fontSize: '0.85rem' }}
+              style={{ width: 'auto', fontSize: '0.85rem', height: '36px', padding: '0 0.75rem' }}
               value={`${sortBy}:${sortOrder}`}
               onChange={(e) => {
                 const [sb, so] = e.target.value.split(':');
@@ -216,23 +268,62 @@ export const ProjectsList: React.FC = () => {
             </select>
           </div>
         </div>
+
+        {/* Active Filter Chips */}
+        {hasActiveFilters && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.5rem' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Active filters:</span>
+            {search && (
+              <span className="badge badge-provenance-inferred" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                Query: "{search}"
+                <X size={12} style={{ cursor: 'pointer' }} onClick={() => updateParam('search', '')} />
+              </span>
+            )}
+            {status !== 'All' && (
+              <span className="badge badge-provenance-inferred" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                Status: {status}
+                <X size={12} style={{ cursor: 'pointer' }} onClick={() => updateParam('status', 'All')} />
+              </span>
+            )}
+            {category !== 'All' && (
+              <span className="badge badge-provenance-inferred" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                Category: {category}
+                <X size={12} style={{ cursor: 'pointer' }} onClick={() => updateParam('category', 'All')} />
+              </span>
+            )}
+            {technology !== 'All' && (
+              <span className="badge badge-provenance-inferred" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                Tech: {technology}
+                <X size={12} style={{ cursor: 'pointer' }} onClick={() => updateParam('technology', 'All')} />
+              </span>
+            )}
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
+              onClick={clearAllFilters}
+            >
+              Reset all
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Projects Grid */}
+      {/* Projects Grid or List */}
       {loading ? (
-        <div className="grid-cards">
+        <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(320px, 1fr))' : '1fr', gap: '1.25rem' }}>
           {[...Array(6)].map((_, i) => (
             <CardSkeleton key={i} />
           ))}
         </div>
       ) : projects.length > 0 ? (
         <>
-          <div className="grid-cards">
+          <div style={{ display: 'grid', gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(320px, 1fr))' : '1fr', gap: '1.25rem' }}>
             {projects.map((project) => (
               <ProjectCard
                 key={project.id}
                 project={project}
                 onDelete={handleDelete}
+                layout={viewMode}
               />
             ))}
           </div>
@@ -245,7 +336,7 @@ export const ProjectsList: React.FC = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 gap: '1rem',
-                marginTop: '2.5rem',
+                marginTop: '3rem',
               }}
             >
               <button
@@ -261,7 +352,7 @@ export const ProjectsList: React.FC = () => {
               </button>
 
               <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Page {page} of {totalPages} ({total} projects)
+                Page {page} of {totalPages} ({total} repositories)
               </span>
 
               <button
@@ -281,32 +372,38 @@ export const ProjectsList: React.FC = () => {
       ) : (
         /* Empty State */
         <div
-          className="card"
+          className="aurora-card"
           style={{
             textAlign: 'center',
             padding: '4rem 1.5rem',
             borderStyle: 'dashed',
+            borderColor: 'var(--border-subtle)',
           }}
         >
-          <FolderGit2
-            size={40}
-            color="var(--text-muted)"
-            style={{ margin: '0 auto 1rem auto' }}
-          />
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-            No matching projects found
-          </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-            Try adjusting your search terms or filters to find what you are looking for.
-          </p>
-          <button
-            className="btn btn-secondary"
-            onClick={() => {
-              setSearchInput('');
-              setSearchParams(new URLSearchParams());
+          <div
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: 'var(--radius-md)',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-subtle)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.25rem auto',
+              color: 'var(--text-muted)',
             }}
           >
-            Reset Filters
+            <FolderGit2 size={26} />
+          </div>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+            No repositories matched criteria
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem', maxWidth: '420px', margin: '0 auto 1.5rem auto' }}>
+            Try modifying your query or resetting active filters to browse the catalog.
+          </p>
+          <button className="btn btn-secondary" onClick={clearAllFilters}>
+            Reset All Filters
           </button>
         </div>
       )}
